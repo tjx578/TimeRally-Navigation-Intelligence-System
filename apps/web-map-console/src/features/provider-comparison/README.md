@@ -8,6 +8,7 @@ Compares route result from:
 - Google online validator.
 
 Displays:
+
 - distance delta,
 - duration delta,
 - polyline difference,
@@ -15,5 +16,5 @@ Displays:
 - provider error.
 
 Rule:
-- Google is a validator/link-out provider, not the offline source of truth.
 
+- Google is a validator/link-out provider, not the offline source of truth.

@@ -1,0 +1,67 @@
+waypoint_id,event_name,event_date,region,trayek,sub_trayek,sequence,raw_text,normalized_name,entity_type,category_hint,route_role,lat,lng,match_status,matched_name,matched_source,confidence,verification_status,notes
+jfr2025_wp001,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,1,START,start,start_point,start,start,,,ocr_detected,,,0.60,needs_navigator_validation,start location not visible in soal photo
+jfr2025_wp002,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,2,RS BALIMED,rs balimed,poi,hospital,pass,,,needs_resolution,,,0.50,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp003,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,3,SDN 1 Pergung,sd negeri 1 pergung,poi,school,pass,-8.3759249,114.6832685,matched_from_jembrana_csv,SD Negeri 1 Pergung,jembrana_maps_base_clean.csv,0.88,needs_navigator_validation,exact local candidate found
+jfr2025_wp004,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,4,Jalan Ketut Gelot,jalan ketut gelot,road,road,pass,,,ocr_detected,,,0.55,needs_navigator_validation,road name from OCR
+jfr2025_wp005,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,5,Kantor Lurah Tegal Cangkring,kantor lurah tegal cangkring,poi,government,pass,,,needs_resolution,,,0.55,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp006,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,6,BR Bilukpoh Kangin,balai banjar bilukpoh kangin,poi,banjar,pass,-8.3786545,114.7010449,matched_from_jembrana_csv,Balai Banjar Bilukpoh Kangin,jembrana_maps_base_clean.csv,0.90,needs_navigator_validation,strong candidate found
+jfr2025_wp007,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,7,BR Sembung,balai banjar sembung,poi,banjar,pass,,,needs_resolution,,,0.50,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp008,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,8,Jalan Kartini,jalan kartini,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp009,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,9,Jalan Rama,jalan rama,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp010,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,10,Jalan Yudistira,jalan yudistira,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp011,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,11,Jalan Sahadewa,jalan sahadewa,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp012,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,12,Jalan Anggrek,jalan anggrek,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp013,Jembrana Fun Rally,2025-08-30,Jembrana,1,A,13,BR Anyar Tembles,balai banjar anyar tembles,poi,banjar,end,-8.3870921,114.7210833,matched_from_jembrana_csv,Balai Banjar Anyar Tembles,jembrana_maps_base_clean.csv,0.90,needs_navigator_validation,end of sub A candidate
+jfr2025_wp014,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,1,Jalan Denpasar Gilimanuk,jalan denpasar gilimanuk,road,road,start,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp015,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,2,Jalan Semangka,jalan semangka,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp016,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,3,BR Celepud,balai banjar celepud,poi,banjar,pass,,,needs_resolution,,,0.50,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp017,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,4,Kantor Kepala Desa Delod Berawah,kantor kepala desa delod berawah,poi,government,pass,,,needs_resolution,,,0.55,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp018,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,5,Jalan Air Kuning,jalan air kuning,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp019,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,6,SDN 2 Yeh Kuning,sdn 2 yehkuning,poi,school,pass,-8.3970616,114.6622863,matched_from_jembrana_csv,SDN 2 Yehkuning,jembrana_maps_base_clean.csv,0.88,needs_navigator_validation,spelling normalized from Yeh Kuning to Yehkuning
+jfr2025_wp020,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,7,Jalan Samlong,jalan samlong,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp021,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,8,Jalan Tenggiri,jalan tenggiri,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp022,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,9,BR Delod Pangkung,balai banjar delod pangkung,poi,banjar,pass,,,needs_resolution,,,0.50,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp023,Jembrana Fun Rally,2025-08-30,Jembrana,1,B,10,Kantor Kepala Desa Budeng,kantor kepala desa budeng,poi,government,end,,,needs_resolution,,,0.55,needs_navigator_validation,end of sub B candidate
+jfr2025_wp024,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,1,SD 3 Loloan Timur,sd negeri 3 loloan timur,poi,school,start,,,needs_resolution,,,0.50,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp025,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,2,Jalan Katulampo,jalan katulampo,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp026,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,3,SD 1 Loloan Barat,sd negeri 1 loloan barat,poi,school,pass,,,needs_resolution,,,0.50,needs_navigator_validation,do not auto-match to SD Negeri 2 Loloan Barat
+jfr2025_wp027,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,4,Jalan Gatot Subroto,jalan gatot subroto,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp028,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,5,RSU Negara,rsu negara,poi,hospital,pass,,,needs_resolution,,,0.50,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp029,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,6,Jalan Jempiring,jalan jempiring,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp030,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,7,Jalan Dahlia,jalan dahlia,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp031,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,8,Jalan Rajawali,jalan rajawali,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp032,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,9,Jalan Jalak Putih,jalan jalak putih,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp033,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,10,Jalan Merak,jalan merak,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp034,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,11,Jalan Surapati,jalan surapati,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp035,Jembrana Fun Rally,2025-08-30,Jembrana,1,C,12,FINISH,finish,finish_point,finish,end,,,ocr_detected,,,0.60,needs_navigator_validation,finish point from trayek 1
+jfr2025_wp036,Jembrana Fun Rally,2025-08-30,Jembrana,1,note,1,Kantor Bupati,kantor bupati jembrana,poi,government,note,,,needs_resolution,,,0.50,needs_navigator_validation,mentioned as lunch area north of kantor bupati
+jfr2025_wp037,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,1,START,start,start_point,start,start,,,ocr_detected,,,0.60,needs_navigator_validation,start location not visible in soal photo
+jfr2025_wp038,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,2,Jalan Ngurah Rai,jalan ngurah rai,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp039,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,3,Jalan Kalimutu,jalan kalimutu,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp040,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,4,Jalan Kepundung,jalan kepundung,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp041,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,5,Jalan Danau Beratan,jalan danau beratan,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp042,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,6,X Baluk,x baluk,intersection,intersection,pass,,,ocr_detected,,,0.50,needs_navigator_validation,event route marker or local intersection
+jfr2025_wp043,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,7,BR Adat Berawansalah,balai banjar adat berawansalah,poi,banjar,pass,,,needs_resolution,,,0.45,needs_navigator_validation,low OCR confidence name
+jfr2025_wp044,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,8,BR Rening Cupel,balai banjar rening cupel,poi,banjar,pass,,,needs_resolution,,,0.50,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp045,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,9,BR Munduk Asem,balai banjar munduk asem,poi,banjar,pass,-8.3613737,114.5602058,matched_from_jembrana_csv,Balai Banjar Munduk Asem,jembrana_maps_base_clean.csv,0.90,needs_navigator_validation,strong candidate found
+jfr2025_wp046,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,10,Kantor Kepala Desa Cupel,kantor kepala desa cupel,poi,government,pass,,,needs_resolution,,,0.55,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp047,Jembrana Fun Rally,2025-08-30,Jembrana,2,A,11,BR Puana,balai banjar puana,poi,banjar,end,-8.3663074,114.5769386,matched_from_jembrana_csv,Balai banjar puana,jembrana_maps_base_clean.csv,0.90,needs_navigator_validation,end of sub A candidate
+jfr2025_wp048,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,1,Kantor Kepala Desa Tegal Badeng Barat,kantor kepala desa tegal badeng barat,poi,government,start,,,needs_resolution,,,0.55,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp049,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,2,BR Anyar,balai banjar anyar tegal badeng barat,poi,banjar,pass,-8.3703314,114.5872179,partial_match_from_jembrana_csv,Balai Dinas Banjar Anyar Tegal Badeng Barat,jembrana_maps_base_clean.csv,0.72,needs_navigator_validation,generic BR Anyar matched by route context Tegal Badeng Barat
+jfr2025_wp050,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,3,Jalan Melon,jalan melon,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp051,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,4,Kantor Kepala Desa Tegal Badeng Timur,kantor kepala desa tegal badeng timur,poi,government,pass,,,needs_resolution,,,0.55,needs_navigator_validation,not found in jembrana csv
+jfr2025_wp052,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,5,Jalan Danau Batur,jalan danau batur,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp053,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,6,SD 1 Loloan Barat,sd negeri 1 loloan barat,poi,school,pass,,,needs_resolution,,,0.50,needs_navigator_validation,repeated from trayek 1 sub C
+jfr2025_wp054,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,7,Jalan Pulau Jawa,jalan pulau jawa,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp055,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,8,BR Sri Mandala,balai banjar sri mandala,poi,banjar,pass,-8.3642118,114.6354011,matched_from_jembrana_csv,Balai Banjar Sri Mandala,jembrana_maps_base_clean.csv,0.90,needs_navigator_validation,strong candidate found
+jfr2025_wp056,Jembrana Fun Rally,2025-08-30,Jembrana,2,B,9,Kantor Lurah Dauh Waru,kantor lurah dauh waru,poi,government,end,,,needs_resolution,,,0.55,needs_navigator_validation,end of sub B candidate
+jfr2025_wp057,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,1,Jalan Gunung Agung,jalan gunung agung,road,road,start,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp058,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,2,Jalan Katulampo,jalan katulampo,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,repeated road candidate
+jfr2025_wp059,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,3,Jalan Mangga,jalan mangga,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp060,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,4,Jalan Danau Tondano,jalan danau tondano,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp061,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,5,Jalan DR Sutomo,jalan dr sutomo,road,road,pass,,,ocr_detected,,,0.60,needs_navigator_validation,road candidate
+jfr2025_wp062,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,6,Jalan Mayor Sugianyar,jalan mayor sugianyar,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,road candidate
+jfr2025_wp063,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,7,Jalan Merak,jalan merak,road,road,pass,,,ocr_detected,,,0.65,needs_navigator_validation,repeated road candidate
+jfr2025_wp064,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,8,Jalan Surapati,jalan surapati,road,road,end,,,ocr_detected,,,0.65,needs_navigator_validation,end road before finish
+jfr2025_wp065,Jembrana Fun Rally,2025-08-30,Jembrana,2,C,9,FINISH,finish,finish_point,finish,end,,,ocr_detected,,,0.60,needs_navigator_validation,finish by zero car 14.00 WITA
+

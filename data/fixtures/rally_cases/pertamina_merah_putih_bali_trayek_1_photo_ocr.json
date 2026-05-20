@@ -1,0 +1,95 @@
+{
+  "eventName": "Pertamina Merah Putih Kejurnas Wisata Rally Bali Putaran 1 - 2024",
+  "location": "Bali",
+  "trayekName": "Trayek 1",
+  "declaredDistanceKm": 93.4,
+  "declaredDurationMinutes": 270,
+  "masterStartTime": "08:00",
+  "masterFinishTime": "12:30",
+  "headerDistanceCorrectionKm": 98,
+  "status": "needs_review",
+  "warnings": [
+    "Sub A has no explicit distance and is reconciled from total distance delta.",
+    "Header distance has a handwritten correction that must be confirmed by the navigator."
+  ],
+  "rows": [
+    {
+      "sub": "A",
+      "title": "INNA Bali Heritage ke Tangguntiti Tonja",
+      "declaredDistanceKm": null,
+      "inferredDistanceKm": 3.57,
+      "durationMinutes": 12,
+      "speedKmh": 17.86,
+      "scheduledStartTime": "08:00",
+      "scheduledFinishTime": "08:12",
+      "kmPerSecond": 0.004961,
+      "mappingStatus": "needs_review"
+    },
+    {
+      "sub": "B",
+      "title": "Tangguntiti Tonja ke X Penarungan",
+      "declaredDistanceKm": 12.46,
+      "durationMinutes": 38,
+      "speedKmh": 19.67,
+      "scheduledStartTime": "08:12",
+      "scheduledFinishTime": "08:50",
+      "kmPerSecond": 0.005464,
+      "mappingStatus": "mapped"
+    },
+    {
+      "sub": "C",
+      "title": "Penarungan ke Tohpati",
+      "declaredDistanceKm": 24.87,
+      "durationMinutes": 75,
+      "speedKmh": 19.9,
+      "scheduledStartTime": "08:50",
+      "scheduledFinishTime": "10:05",
+      "kmPerSecond": 0.005528,
+      "mappingStatus": "mapped"
+    },
+    {
+      "sub": "D",
+      "title": "Tohpati ke Perbekel Melinggih Kelod",
+      "declaredDistanceKm": 11.73,
+      "durationMinutes": 45,
+      "speedKmh": 15.64,
+      "scheduledStartTime": "10:05",
+      "scheduledFinishTime": "10:50",
+      "kmPerSecond": 0.004344,
+      "mappingStatus": "mapped"
+    },
+    {
+      "sub": "E",
+      "title": "Melinggih Kelod ke SDN 4 Manukaya",
+      "declaredDistanceKm": 21.9,
+      "durationMinutes": 50,
+      "speedKmh": 26.28,
+      "scheduledStartTime": "10:50",
+      "scheduledFinishTime": "11:40",
+      "kmPerSecond": 0.0073,
+      "mappingStatus": "mapped"
+    },
+    {
+      "sub": "F",
+      "title": "Manukaya ke Perbekel Desa Sulahan",
+      "declaredDistanceKm": 12.85,
+      "durationMinutes": 40,
+      "speedKmh": 19.28,
+      "scheduledStartTime": "11:40",
+      "scheduledFinishTime": "12:20",
+      "kmPerSecond": 0.005356,
+      "mappingStatus": "mapped"
+    },
+    {
+      "sub": "G",
+      "title": "Sulahan ke finish Kantor Bupati Bangli",
+      "declaredDistanceKm": 6.02,
+      "durationMinutes": 10,
+      "speedKmh": 36.12,
+      "scheduledStartTime": "12:20",
+      "scheduledFinishTime": "12:30",
+      "kmPerSecond": 0.010033,
+      "mappingStatus": "mapped"
+    }
+  ]
+}

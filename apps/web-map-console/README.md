@@ -22,9 +22,9 @@ src/features/validation
 ## UI Prinsip Lomba
 
 UI harus cepat dibaca, padat, dan tidak seperti landing page. Prioritasnya:
+
 - status waypoint,
 - ETA,
 - deviasi,
 - confidence,
 - next turn.
-

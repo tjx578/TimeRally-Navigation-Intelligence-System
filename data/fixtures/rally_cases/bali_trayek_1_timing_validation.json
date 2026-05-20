@@ -1,0 +1,65 @@
+{
+  "trayekId": "bali-2024-trayek-1",
+  "eventName": "Bali - Merah Putih / Options Auto Sport / Biru Langitku",
+  "declaredDistanceKm": 65.1,
+  "declaredDurationMinutes": 210,
+  "distanceRule": "Sub A menuju zero trip tidak dihitung ke total jarak. Sub B-G dihitung ke total jarak.",
+  "rows": [
+    {
+      "sub": "A",
+      "title": "Menuju zero trip",
+      "distanceKm": null,
+      "durationMinutes": 5,
+      "distanceCountedInTotal": false,
+      "speedMode": "liaison_zero_trip"
+    },
+    {
+      "sub": "B",
+      "title": "Zero trip ke KC Denpasar Barat",
+      "distanceKm": 20.1,
+      "durationMinutes": 60,
+      "distanceCountedInTotal": true,
+      "speedMode": "average_speed"
+    },
+    {
+      "sub": "C",
+      "title": "Gunung Sanghyang ke Kebo Iwa Utara",
+      "distanceKm": 8.9,
+      "durationMinutes": 28,
+      "distanceCountedInTotal": true,
+      "speedMode": "fixed_second"
+    },
+    {
+      "sub": "D",
+      "title": "Cokroaminoto ke KL Penatih",
+      "distanceKm": 14.4,
+      "durationMinutes": 45,
+      "distanceCountedInTotal": true,
+      "speedMode": "fixed_second"
+    },
+    {
+      "sub": "E",
+      "title": "KSM 2/DPS 11/PNT 0 ke BPBD Denpasar",
+      "distanceKm": 8.4,
+      "durationMinutes": 28,
+      "distanceCountedInTotal": true,
+      "speedMode": "average_speed"
+    },
+    {
+      "sub": "F",
+      "title": "Tulang ikan BPBD ke SPBU Puputan",
+      "distanceKm": 5.3,
+      "durationMinutes": 21,
+      "distanceCountedInTotal": true,
+      "speedMode": "average_speed"
+    },
+    {
+      "sub": "G",
+      "title": "Hang Tuah ke finish Pantai Mertasari",
+      "distanceKm": 8,
+      "durationMinutes": 23,
+      "distanceCountedInTotal": true,
+      "speedMode": "average_speed"
+    }
+  ]
+}

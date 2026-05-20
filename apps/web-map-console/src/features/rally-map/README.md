@@ -12,7 +12,7 @@ Layer yang wajib:
 - checkpoint/geofence.
 
 Interaction:
+
 - click waypoint -> detail source/confidence,
 - drag candidate -> recompute leg,
 - compare provider -> show distance/time deltas.
-

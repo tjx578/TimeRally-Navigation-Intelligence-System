@@ -1,0 +1,78 @@
+{
+  "event_name": "Jembrana Fun Rally",
+  "event_date": "2025-08-30",
+  "region": "Jembrana",
+  "source_type": "uploaded_photo_ocr",
+  "status": "historical_fixture_needs_route_validation",
+  "trayeks": [
+    {
+      "trayek": 1,
+      "total_distance_km": 40.6,
+      "total_time_min": 120,
+      "sub_trayeks": [
+        {
+          "sub": "A",
+          "distance_km": 15.8,
+          "time_min": 45,
+          "average_speed_kmh": 21.06,
+          "start_token": "START",
+          "end_token": "BR Anyar Tembles"
+        },
+        {
+          "sub": "B",
+          "distance_km": 14.2,
+          "time_min": 40,
+          "average_speed_kmh": 21.3,
+          "start_token": "Jalan Denpasar Gilimanuk",
+          "end_token": "Kantor Kepala Desa Budeng"
+        },
+        {
+          "sub": "C",
+          "distance_km": 10.6,
+          "time_min": 35,
+          "average_speed_kmh": 18.17,
+          "start_token": "SD 3 Loloan Timur",
+          "end_token": "FINISH"
+        }
+      ]
+    },
+    {
+      "trayek": 2,
+      "total_distance_km": 34.5,
+      "total_time_min": 120,
+      "sub_trayeks": [
+        {
+          "sub": "A",
+          "distance_km": 16.4,
+          "time_min": 55,
+          "average_speed_kmh": 17.89,
+          "start_token": "START",
+          "end_token": "BR Puana"
+        },
+        {
+          "sub": "B",
+          "distance_km": 10.6,
+          "time_min": 40,
+          "average_speed_kmh": 15.9,
+          "start_token": "Kantor Kepala Desa Tegal Badeng Barat",
+          "end_token": "Kantor Lurah Dauh Waru"
+        },
+        {
+          "sub": "C",
+          "distance_km": 7.5,
+          "time_min": 25,
+          "average_speed_kmh": 18.0,
+          "start_token": "Jalan Gunung Agung",
+          "end_token": "FINISH"
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "trayek_1_distance_sum_km": 40.6,
+    "trayek_1_time_sum_min": 120,
+    "trayek_2_distance_sum_km": 34.5,
+    "trayek_2_time_sum_min": 120
+  },
+  "waypoint_candidates": "data/raw/historical_waypoints/jembrana/jembrana_fun_rally_2025_waypoint_candidates.csv"
+}
