@@ -1,0 +1,2 @@
+"""Core rally intelligence package."""
+
