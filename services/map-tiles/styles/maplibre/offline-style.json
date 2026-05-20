@@ -1,0 +1,20 @@
+{
+  "version": 8,
+  "name": "Time Rally Offline",
+  "sources": {
+    "offline": {
+      "type": "vector",
+      "url": "pmtiles://offline-map.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#eef2f7"
+      }
+    }
+  ]
+}
+
