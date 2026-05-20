@@ -1,0 +1,15 @@
+[project]
+name = "time-rally-navigation-intelligence-system"
+version = "0.1.0"
+description = "Offline-first rally navigation intelligence system blueprint"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "pydantic",
+  "uvicorn",
+  "pyyaml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
