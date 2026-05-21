@@ -39,10 +39,10 @@ class ParsedWaypoint:
 
 @dataclass
 class SubTrayek:
-    """Sub trayek (Sub A, Sub B, dst.)."""
+    """Sub trayek (Sub A, Sub B, Sub 1.1, dst.)."""
 
     id: str
-    label: str  # A, B, C
+    label: str  # A, B, C, 1.1, 1.2, dst.
     title: str
     distance_km: Optional[float] = None
     duration_minutes: Optional[float] = None
@@ -50,6 +50,16 @@ class SubTrayek:
     distance_counted_in_total: bool = True
     waypoints: list[ParsedWaypoint] = field(default_factory=list)
     raw_lines: list[str] = field(default_factory=list)
+
+    # Peta/routing tidak boleh final tanpa titik start dan finish yang jelas.
+    start_waypoint_id: Optional[str] = None
+    finish_waypoint_id: Optional[str] = None
+    start_raw_text: Optional[str] = None
+    finish_raw_text: Optional[str] = None
+    start_status: str = "missing"  # explicit, inherited, missing_location, missing
+    finish_status: str = "missing"  # explicit, inferred_last_waypoint, missing
+    needs_user_start: bool = False
+    needs_user_finish: bool = False
 
 
 @dataclass
