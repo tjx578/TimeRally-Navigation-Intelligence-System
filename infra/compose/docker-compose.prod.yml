@@ -34,6 +34,10 @@ services:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL}
         VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
         VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_MAP_STYLE_URL: ${VITE_MAP_STYLE_URL:-}
+        VITE_MAP_CENTER_LNG: ${VITE_MAP_CENTER_LNG:-}
+        VITE_MAP_CENTER_LAT: ${VITE_MAP_CENTER_LAT:-}
+        VITE_MAP_ZOOM: ${VITE_MAP_ZOOM:-}
         VITE_PMTILES_URL: ${VITE_PMTILES_URL}
         VITE_ROUTING_PUBLIC_BASE: ${VITE_ROUTING_PUBLIC_BASE}
         VITE_SENTRY_DSN: ${VITE_SENTRY_DSN}
@@ -68,6 +72,8 @@ services:
       EXPORTS_ROOT: /app/services/api/exports
       KNOWLEDGE_ROOT: /app/data/curated
       ROUTING_GATEWAY_URL: http://routing-gateway:8010
+      OCR_WORKER_URL: ${OCR_WORKER_URL:-http://ocr-worker:8020}
+      OCR_WORKER_TIMEOUT_SECONDS: ${OCR_WORKER_TIMEOUT_SECONDS:-90}
     depends_on:
       routing-gateway:
         condition: service_healthy
@@ -181,6 +187,10 @@ services:
       context: ../..
       dockerfile: workers/ocr/Dockerfile
     profiles: ["ocr"]
+    environment:
+      APP_ENV: production
+      OCR_ENGINE: ${OCR_ENGINE:-google_vision}
+      OCR_MIN_CONFIDENCE: ${OCR_MIN_CONFIDENCE:-0.1}
     ports:
       - "${OCR_WORKER_PORT:-8020}:8020"
     restart: unless-stopped
