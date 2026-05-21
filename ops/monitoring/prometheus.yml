@@ -16,7 +16,7 @@ scrape_configs:
           - http://routing-gateway:8010/healthz
           - http://place-resolver:8011/healthz
           - http://tracking-gateway:8012/healthz
-          - http://web:8080/healthz
+          - http://web:8080/
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
