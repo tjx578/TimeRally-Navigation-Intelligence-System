@@ -1,11 +1,4 @@
 export function registerServiceWorker() {
-  if (!import.meta.env.PROD || !("serviceWorker" in navigator)) {
-    return;
-  }
-
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js`).catch((error) => {
-      console.warn("Service worker registration failed", error);
-    });
-  });
+  // Disabled during field-test production rollout so stale app-shell caches
+  // cannot keep an older MapLibre/API bundle alive after redeploy.
 }
