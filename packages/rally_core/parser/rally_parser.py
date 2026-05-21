@@ -45,20 +45,63 @@ class RallyParser:
         for idx, (label, body) in enumerate(blocks):
             sub = parse_sub_trayek_block(label=label, body=body, order=idx)
             event.sub_trayeks.append(sub)
+
+        previous_finish_id: str | None = None
+        previous_finish_raw: str | None = None
+        for sub_index, sub in enumerate(event.sub_trayeks):
+            if sub_index == 0:
+                if sub.needs_user_start:
+                    warnings.append(
+                        f"{sub.label}: titik START belum memiliki lokasi. Isi kolom Start sebelum peta/routing dibuat."
+                    )
+            else:
+                if sub.start_status in {"missing", "missing_location"} and previous_finish_id:
+                    sub.start_waypoint_id = previous_finish_id
+                    sub.start_raw_text = previous_finish_raw
+                    sub.start_status = "inherited"
+                    sub.needs_user_start = False
+                    if sub.waypoints:
+                        first = sub.waypoints[0]
+                        first.notes = [note for note in first.notes if note != "start_location_required"]
+                        if not first.notes and first.raw_text.strip().upper() in {"START", "MULAI"}:
+                            first.ambiguous = False
+                    warnings.append(
+                        f"{sub.label}: START diwarisi dari FINISH sub sebelumnya ({previous_finish_raw})."
+                    )
+                elif sub.needs_user_start:
+                    warnings.append(
+                        f"{sub.label}: titik START belum jelas dan tidak bisa diwarisi dari sub sebelumnya."
+                    )
+
+            if sub.needs_user_finish:
+                warnings.append(
+                    f"{sub.label}: titik FINISH belum jelas. Isi kolom Finish sebelum peta/routing dibuat."
+                )
+
+            if sub.finish_waypoint_id:
+                previous_finish_id = sub.finish_waypoint_id
+                previous_finish_raw = sub.finish_raw_text
+
+        for sub in event.sub_trayeks:
             for wp in sub.waypoints:
                 if wp.ambiguous:
+                    reason = "no_recognizable_token"
+                    if "start_location_required" in wp.notes:
+                        reason = "start_location_required"
+                    elif "finish_location_required" in wp.notes:
+                        reason = "finish_location_required"
                     unresolved.append(
                         UnresolvedToken(
                             token=wp.raw_text,
                             sub_trayek_id=sub.id,
                             line_index=wp.order,
-                            reason="no_recognizable_token",
+                            reason=reason,
                         )
                     )
 
         if not blocks:
             warnings.append(
-                "Tidak ada blok Sub yang terdeteksi. Pastikan soal memuat baris 'Sub A', 'Sub B', dst."
+                "Tidak ada blok Sub yang terdeteksi. Pastikan soal memuat baris 'Sub A', 'Sub 1.1', dst."
             )
 
         # Cross-check total
