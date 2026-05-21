@@ -1,0 +1,3 @@
+-- Optional production seed.
+-- Data lomba nyata sebaiknya masuk lewat migration atau importer terverifikasi,
+-- bukan seed dummy, agar scoring dan route solving tidak tercemar data palsu.
