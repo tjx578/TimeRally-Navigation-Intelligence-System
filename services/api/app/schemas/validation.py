@@ -28,7 +28,9 @@ class SubTrayekTimingInput(BaseModel):
         "liaison_zero_trip",
         "average_speed",
         "fixed_second",
+        "fixed_minute",
         "remaining_distance",
+        "free_time",
     ] = "average_speed"
 
 

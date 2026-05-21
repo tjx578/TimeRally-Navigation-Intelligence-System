@@ -34,10 +34,14 @@ def _format_clock(total_minutes: float | None) -> str | None:
 def _classification_label(speed_mode: str) -> str:
     if speed_mode == "fixed_second":
         return "Kecepatan tetap detik"
+    if speed_mode == "fixed_minute":
+        return "Kecepatan tetap menit"
     if speed_mode == "average_speed":
         return "Kecepatan rata-rata"
     if speed_mode == "remaining_distance":
         return "Sisa jarak finish"
+    if speed_mode == "free_time":
+        return "Santai/bebas"
     return "Start/zero trip"
 
 
