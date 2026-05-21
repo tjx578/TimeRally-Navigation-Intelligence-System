@@ -1,6 +1,7 @@
 {
   "version": 8,
-  "name": "Time Rally Bali PMTiles",
+  "name": "Time Rally Bali Debug",
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "sources": {
     "bali": {
       "type": "vector",
@@ -12,7 +13,7 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#e8f0e6"
+        "background-color": "#eef2e6"
       }
     },
     {
@@ -21,17 +22,7 @@
       "source": "bali",
       "source-layer": "water",
       "paint": {
-        "fill-color": "#9ed5ec"
-      }
-    },
-    {
-      "id": "landcover",
-      "type": "fill",
-      "source": "bali",
-      "source-layer": "landcover",
-      "paint": {
-        "fill-color": "#cfe5bd",
-        "fill-opacity": 0.7
+        "fill-color": "#9fd3ff"
       }
     },
     {
@@ -40,41 +31,80 @@
       "source": "bali",
       "source-layer": "landuse",
       "paint": {
-        "fill-color": "#d7e8c7",
-        "fill-opacity": 0.58
+        "fill-color": "#d8e8c8",
+        "fill-opacity": 0.45
       }
     },
     {
-      "id": "buildings",
-      "type": "fill",
-      "source": "bali",
-      "source-layer": "building",
-      "minzoom": 13,
-      "paint": {
-        "fill-color": "#cfc5ba",
-        "fill-opacity": 0.75
-      }
-    },
-    {
-      "id": "roads-casing",
+      "id": "transportation-casing",
       "type": "line",
       "source": "bali",
       "source-layer": "transportation",
       "paint": {
         "line-color": "#ffffff",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 7, 0.7, 12, 3.2, 15, 8],
-        "line-opacity": 0.92
+        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 4, 12, 8, 16, 16]
       }
     },
     {
-      "id": "roads",
+      "id": "transportation-main",
       "type": "line",
       "source": "bali",
       "source-layer": "transportation",
       "paint": {
-        "line-color": "#4f626f",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 7, 0.45, 12, 1.8, 15, 4.8],
-        "line-opacity": 0.9
+        "line-color": "#111111",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 1, 9, 2, 12, 5, 16, 10]
+      }
+    },
+    {
+      "id": "transportation-name",
+      "type": "symbol",
+      "source": "bali",
+      "source-layer": "transportation_name",
+      "minzoom": 11,
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": ["coalesce", ["get", "name:latin"], ["get", "name"]],
+        "text-font": ["Open Sans Semibold"],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#000000",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1.5
+      }
+    },
+    {
+      "id": "places",
+      "type": "symbol",
+      "source": "bali",
+      "source-layer": "place",
+      "minzoom": 6,
+      "layout": {
+        "text-field": ["coalesce", ["get", "name:latin"], ["get", "name"]],
+        "text-font": ["Open Sans Semibold"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 7, 12, 12, 16]
+      },
+      "paint": {
+        "text-color": "#cc0000",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 2
+      }
+    },
+    {
+      "id": "poi",
+      "type": "symbol",
+      "source": "bali",
+      "source-layer": "poi",
+      "minzoom": 13,
+      "layout": {
+        "text-field": ["coalesce", ["get", "name:latin"], ["get", "name"]],
+        "text-font": ["Open Sans Semibold"],
+        "text-size": 11
+      },
+      "paint": {
+        "text-color": "#0044cc",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1
       }
     }
   ]
