@@ -5,7 +5,9 @@ import "./styles/app.css";
 import { App } from "./App";
 import { flushOfflineQueue } from "./lib/offline/offlineQueue";
 import { registerServiceWorker } from "./lib/offline/registerServiceWorker";
+import { initSentry } from "./lib/observability/sentry";
 
+void initSentry();
 registerServiceWorker();
 void flushOfflineQueue(import.meta.env.VITE_API_BASE_URL ?? "");
 window.addEventListener("online", () => {
