@@ -104,6 +104,14 @@ def parse_rally(request: RallyParseRequest) -> RallyParseResponse:
                 duration_minutes=sub.duration_minutes,
                 speed_mode=sub.speed_mode,
                 distance_counted_in_total=sub.distance_counted_in_total,
+                start_waypoint_id=sub.start_waypoint_id,
+                finish_waypoint_id=sub.finish_waypoint_id,
+                start_raw_text=sub.start_raw_text,
+                finish_raw_text=sub.finish_raw_text,
+                start_status=sub.start_status,
+                finish_status=sub.finish_status,
+                needs_user_start=sub.needs_user_start,
+                needs_user_finish=sub.needs_user_finish,
                 waypoints=[
                     ParsedWaypointResponse(
                         id=wp.id,
