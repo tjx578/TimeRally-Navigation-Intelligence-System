@@ -34,6 +34,22 @@ class Settings:
     exports_root: str = "exports"
     knowledge_root: str = "data/curated"
     cors_origins: tuple[str, ...] = ("http://localhost:5173", "http://127.0.0.1:5173")
+    # Public URL (untuk Sentry tag dan signed-URL builder).
+    public_web_url: str | None = None
+    public_api_url: str | None = None
+    # Supabase (server-side only; service_role_key tidak boleh bocor ke client).
+    supabase_url: str | None = None
+    supabase_anon_key: str | None = None
+    supabase_service_role_key: str | None = None
+    supabase_db_url: str | None = None
+    supabase_exports_bucket: str = "exports-private"
+    supabase_uploads_bucket: str = "uploads-private"
+    # Observability.
+    sentry_dsn: str | None = None
+    sentry_environment: str = "development"
+    sentry_traces_sample_rate: float = 0.0
+    # TTL signed URL untuk artefak export private (detik).
+    export_signed_url_ttl_seconds: int = 900
 
 
 def _to_bool(value: str | None, default: bool = False) -> bool:
@@ -48,10 +64,29 @@ def _to_csv_tuple(value: str | None, default: tuple[str, ...]) -> tuple[str, ...
     return tuple(item.strip() for item in value.split(",") if item.strip())
 
 
+def _to_float(value: str | None, default: float) -> float:
+    if value is None or value.strip() == "":
+        return default
+    try:
+        return float(value)
+    except ValueError:
+        return default
+
+
+def _to_int(value: str | None, default: int) -> int:
+    if value is None or value.strip() == "":
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
+    app_env = os.getenv("APP_ENV", "development")
     return Settings(
-        app_env=os.getenv("APP_ENV", "development"),
+        app_env=app_env,
         database_url=os.getenv("DATABASE_URL"),
         redis_url=os.getenv("REDIS_URL"),
         routing_default_provider=os.getenv("ROUTING_DEFAULT_PROVIDER", "auto"),
@@ -60,7 +95,7 @@ def get_settings() -> Settings:
         routing_provider_standby=os.getenv("ROUTING_PROVIDER_STANDBY", "graphhopper"),
         routing_allow_mock_fallback=_to_bool(
             os.getenv("ROUTING_ALLOW_MOCK_FALLBACK"),
-            default=os.getenv("APP_ENV", "development").strip().lower() != "production",
+            default=app_env.strip().lower() != "production",
         ),
         routing_gateway_url=os.getenv("ROUTING_GATEWAY_URL", "http://routing-gateway:8010"),
         valhalla_url=os.getenv("VALHALLA_URL", "http://localhost:8002"),
@@ -78,4 +113,16 @@ def get_settings() -> Settings:
             os.getenv("API_CORS_ORIGINS"),
             ("http://localhost:5173", "http://127.0.0.1:5173"),
         ),
+        public_web_url=os.getenv("PUBLIC_WEB_URL") or None,
+        public_api_url=os.getenv("PUBLIC_API_URL") or None,
+        supabase_url=os.getenv("SUPABASE_URL") or None,
+        supabase_anon_key=os.getenv("SUPABASE_ANON_KEY") or None,
+        supabase_service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY") or None,
+        supabase_db_url=os.getenv("SUPABASE_DB_URL") or None,
+        supabase_exports_bucket=os.getenv("SUPABASE_EXPORTS_BUCKET", "exports-private"),
+        supabase_uploads_bucket=os.getenv("SUPABASE_UPLOADS_BUCKET", "uploads-private"),
+        sentry_dsn=os.getenv("SENTRY_DSN") or None,
+        sentry_environment=os.getenv("SENTRY_ENVIRONMENT", app_env),
+        sentry_traces_sample_rate=_to_float(os.getenv("SENTRY_TRACES_SAMPLE_RATE"), 0.0),
+        export_signed_url_ttl_seconds=_to_int(os.getenv("EXPORT_SIGNED_URL_TTL_SECONDS"), 900),
     )
