@@ -128,3 +128,119 @@ Arah Ubud/Gianyar - IJU - BR. Kedewatan
 """
     result = RallyParser().parse(raw)
     assert result.event.sub_trayeks[0].speed_mode == "free_time"
+
+
+def test_parse_dash_delimited_time_rally_waypoints():
+    raw = """
+Sub A:
+START - BKR - BKR di LR - RS BALIMED - Langsung menuju SDN 1 Pergung - BKR, Jalan Ketut Gelot - BKR di T Kantor Lurah Tegal Cangkring - BKN - BR.Bilukpoh Kangin di kanan - BR. Sembung di kanan - Jalan Kartini - Jalan Rama - BKN, JL Yudistira - BKR - IJU - BKR, Jalan Sahadewa - Jalan Anggrek - BR Anyar Tembles, dengan jarak, 15,8km
+"""
+    result = RallyParser().parse(raw)
+    sub = result.event.sub_trayeks[0]
+
+    assert sub.label == "A"
+    assert sub.title == "Sub A"
+    assert sub.distance_km == 15.8
+    assert [wp.raw_text for wp in sub.waypoints] == [
+        "START",
+        "BKR",
+        "BKR di LR",
+        "RS BALIMED",
+        "Langsung menuju SDN 1 Pergung",
+        "BKR, Jalan Ketut Gelot",
+        "BKR di T Kantor Lurah Tegal Cangkring",
+        "BKN",
+        "BR.Bilukpoh Kangin di kanan",
+        "BR. Sembung di kanan",
+        "Jalan Kartini",
+        "Jalan Rama",
+        "BKN, JL Yudistira",
+        "BKR",
+        "IJU",
+        "BKR, Jalan Sahadewa",
+        "Jalan Anggrek",
+        "BR Anyar Tembles",
+    ]
+
+    assert sub.waypoints[5].action == "belok_kiri"
+    assert sub.waypoints[3].landmark_type == "rumah_sakit"
+    assert sub.waypoints[3].landmark_name == "BALIMED"
+    assert sub.waypoints[4].relation == "toward"
+    assert sub.waypoints[4].landmark_type == "sekolah_dasar"
+    assert sub.waypoints[4].landmark_name == "1 Pergung"
+    assert sub.waypoints[5].landmark_name == "Jalan Ketut Gelot"
+    assert sub.waypoints[6].landmark_type == "simpang_tiga"
+    assert sub.waypoints[6].landmark_name == "Kantor Lurah Tegal Cangkring"
+    assert sub.waypoints[8].landmark_type == "banjar"
+    assert sub.waypoints[8].landmark_name == "Bilukpoh Kangin"
+    assert sub.waypoints[12].action == "belok_kanan"
+    assert sub.waypoints[12].landmark_name == "Jalan Yudistira"
+    assert sub.waypoints[-1].landmark_type == "banjar"
+    assert sub.waypoints[-1].landmark_name == "Anyar Tembles"
+
+
+def test_parse_inline_sub_header_route_sequence():
+    raw = "Sub B: START - BKN - IJU - BR. Kedewatan, dengan jarak, 2,5km"
+
+    result = RallyParser().parse(raw)
+    sub = result.event.sub_trayeks[0]
+
+    assert sub.title == "Sub B"
+    assert sub.distance_km == 2.5
+    assert [wp.raw_text for wp in sub.waypoints] == ["START", "BKN", "IJU", "BR. Kedewatan"]
+
+
+def test_parse_numbered_sub_labels_and_start_finish_chaining():
+    raw = """
+Sub 1.1:
+START - BKR - BKR di LR - RS BALIMED - Langsung menuju SDN 1 Pergung - BKR, Jalan Ketut Gelot - BKR di T Kantor Lurah Tegal Cangkring - BKN - BR.Bilukpoh Kangin di kanan - Jalan Kartini - BR Anyar Tembles, dengan jarak, 15,8km
+
+Sub 1.2:
+BKR - Jalan Rama - BKN, JL Yudistira - BR Sembung - Finish di Kantor Desa Pergung, jarak 4,2km
+"""
+
+    result = RallyParser().parse(raw)
+    sub_11, sub_12 = result.event.sub_trayeks
+
+    assert [sub.label for sub in result.event.sub_trayeks] == ["1.1", "1.2"]
+    assert sub_11.title == "Sub 1.1"
+    assert sub_11.distance_km == 15.8
+    assert sub_11.start_status == "missing_location"
+    assert sub_11.start_raw_text == "START"
+    assert sub_11.needs_user_start is True
+    assert sub_11.finish_status == "inferred_last_waypoint"
+    assert sub_11.finish_raw_text == "BR Anyar Tembles"
+    assert sub_11.needs_user_finish is False
+
+    assert sub_12.title == "Sub 1.2"
+    assert sub_12.distance_km == 4.2
+    assert sub_12.start_status == "inherited"
+    assert sub_12.start_raw_text == "BR Anyar Tembles"
+    assert sub_12.needs_user_start is False
+    assert sub_12.finish_status == "explicit"
+    assert sub_12.finish_raw_text == "Finish di Kantor Desa Pergung"
+    assert sub_12.needs_user_finish is False
+    assert sub_12.waypoints[-1].relation == "at"
+    assert sub_12.waypoints[-1].landmark_name == "Kantor Desa Pergung"
+
+    assert any("1.1: titik START belum memiliki lokasi" in warning for warning in result.warnings)
+    assert any("1.2: START diwarisi dari FINISH sub sebelumnya" in warning for warning in result.warnings)
+    assert any(token.reason == "start_location_required" for token in result.unresolved_tokens)
+
+
+def test_parse_trayek_dotted_label_without_confusing_header_trayek():
+    raw = """
+Event: Trial
+Trayek 1
+
+Trayek 2.3: Start di Lapangan Desa - BKN - Finish di Kantor Desa
+"""
+
+    result = RallyParser().parse(raw)
+    assert result.event.trayek_name == "Trayek 1"
+    assert [sub.label for sub in result.event.sub_trayeks] == ["2.3"]
+    sub = result.event.sub_trayeks[0]
+    assert sub.start_status == "explicit"
+    assert sub.finish_status == "explicit"
+    assert sub.waypoints[0].landmark_name == "Lapangan Desa"
+    assert sub.waypoints[-1].landmark_name == "Kantor Desa"
