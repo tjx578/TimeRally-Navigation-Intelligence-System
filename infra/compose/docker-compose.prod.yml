@@ -1,0 +1,166 @@
+name: time-rally-prod
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web-map-console/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_PMTILES_URL: ${VITE_PMTILES_URL}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../..
+      dockerfile: services/api/Dockerfile
+    env_file:
+      - path: ../../.env.prod.example
+        required: true
+      - path: ../../.env.prod
+        required: false
+    environment:
+      APP_ENV: production
+      EXPORTS_ROOT: /app/services/api/exports
+      KNOWLEDGE_ROOT: /app/data/curated
+      ROUTING_GATEWAY_URL: http://routing-gateway:8010
+    depends_on:
+      routing-gateway:
+        condition: service_healthy
+      place-resolver:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - exports:/app/services/api/exports
+      - ../../data/curated:/app/data/curated:ro
+    restart: unless-stopped
+
+  routing-gateway:
+    build:
+      context: ../..
+      dockerfile: services/routing-gateway/Dockerfile
+    environment:
+      APP_ENV: production
+      ROUTING_DEFAULT_PROVIDER: ${ROUTING_DEFAULT_PROVIDER:-auto}
+      ROUTING_PROVIDER_PRIMARY: ${ROUTING_PROVIDER_PRIMARY:-osrm}
+      ROUTING_PROVIDER_FALLBACK: ${ROUTING_PROVIDER_FALLBACK:-valhalla}
+      ROUTING_PROVIDER_STANDBY: ${ROUTING_PROVIDER_STANDBY:-graphhopper}
+      ROUTING_ALLOW_MOCK_FALLBACK: ${ROUTING_ALLOW_MOCK_FALLBACK:-false}
+      OSRM_URL: ${OSRM_URL:-http://osrm:5000}
+      VALHALLA_URL: ${VALHALLA_URL:-http://valhalla:8002}
+      GRAPHHOPPER_URL: ${GRAPHHOPPER_URL:-http://graphhopper:8989}
+      GOOGLE_ENABLED: ${GOOGLE_ENABLED:-false}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+    ports:
+      - "${ROUTING_GATEWAY_PORT:-8010}:8010"
+    restart: unless-stopped
+
+  place-resolver:
+    build:
+      context: ../..
+      dockerfile: services/place-resolver/Dockerfile
+    environment:
+      APP_ENV: production
+      KNOWLEDGE_ROOT: /app/data/curated
+      NOMINATIM_URL: ${NOMINATIM_URL:-}
+      GOOGLE_ENABLED: ${GOOGLE_ENABLED:-false}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+    ports:
+      - "${PLACE_RESOLVER_PORT:-8011}:8011"
+    volumes:
+      - ../../data/curated:/app/data/curated:ro
+    restart: unless-stopped
+
+  tracking-gateway:
+    build:
+      context: ../..
+      dockerfile: services/tracking-gateway/Dockerfile
+    environment:
+      APP_ENV: production
+    ports:
+      - "${TRACKING_GATEWAY_PORT:-8012}:8012"
+    restart: unless-stopped
+
+  osrm:
+    image: osrm/osrm-backend:v5.27.1
+    command: osrm-routed --algorithm mld ${OSRM_DATA_FILE:-/data/osrm/region.osrm}
+    profiles: ["routing-engines"]
+    volumes:
+      - ../../data/mapdata:/data:ro
+    ports:
+      - "${OSRM_PORT:-5000}:5000"
+    restart: unless-stopped
+
+  valhalla:
+    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    profiles: ["routing-engines"]
+    environment:
+      tile_urls: ${VALHALLA_TILE_URLS:-/data/osm/region.osm.pbf}
+      use_tiles_ignore_pbf: "True"
+      build_elevation: "False"
+      force_rebuild: "False"
+    volumes:
+      - ../../data/mapdata:/data:ro
+      - valhalla_tiles:/custom_files
+    ports:
+      - "${VALHALLA_PORT:-8002}:8002"
+    restart: unless-stopped
+
+  graphhopper:
+    build:
+      context: ../..
+      dockerfile: infra/docker/graphhopper/Dockerfile
+    profiles: ["routing-engines"]
+    environment:
+      JAVA_OPTS: ${GRAPHHOPPER_JAVA_OPTS:--Xmx2g}
+      OSM_FILE: ${GRAPHHOPPER_OSM_FILE:-/data/osm/region.osm.pbf}
+    volumes:
+      - ../../data/mapdata:/data:ro
+      - graphhopper_data:/graphhopper/graph-cache
+    ports:
+      - "${GRAPHHOPPER_PORT:-8989}:8989"
+    restart: unless-stopped
+
+  ocr-worker:
+    build:
+      context: ../..
+      dockerfile: workers/ocr/Dockerfile
+    profiles: ["ocr"]
+    ports:
+      - "${OCR_WORKER_PORT:-8020}:8020"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    profiles: ["monitoring"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ../../ops/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../ops/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    restart: unless-stopped
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    profiles: ["monitoring"]
+    volumes:
+      - ../../ops/monitoring/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    restart: unless-stopped
+
+volumes:
+  exports:
+  graphhopper_data:
+  prometheus_data:
+  valhalla_tiles:

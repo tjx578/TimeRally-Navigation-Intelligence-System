@@ -1,0 +1,18 @@
+graphhopper:
+  datareader.file: /data/osm/region.osm.pbf
+  graph.location: /graphhopper/graph-cache
+  profiles:
+    - name: car
+      vehicle: car
+      weighting: fastest
+  routing.non_ch.max_waypoint_distance: 1000000
+
+server:
+  application_connectors:
+    - type: http
+      port: 8989
+      bind_host: 0.0.0.0
+  admin_connectors:
+    - type: http
+      port: 8990
+      bind_host: 0.0.0.0
