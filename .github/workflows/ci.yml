@@ -48,3 +48,10 @@ jobs:
         run: docker compose -f infra/compose/docker-compose.dev.yml config
       - name: Validate production compose
         run: docker compose --env-file .env.prod.example -f infra/compose/docker-compose.prod.yml config
+      - name: Validate offline Bali compose
+        run: |
+          OFFLINE_BALI_ROOT=/tmp/timerally/offline docker compose \
+            -f infra/compose/docker-compose.dev.yml \
+            -f infra/compose/docker-compose.offline-bali.yml config
+      - name: Validate ops scripts
+        run: bash -n infra/gcp/*.sh tools/offline-bali/*.sh ops/scripts/*.sh
