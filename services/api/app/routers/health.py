@@ -27,6 +27,7 @@ def health() -> dict:
             settings.routing_provider_standby,
         ],
         "google_enabled": settings.google_enabled,
+        "ocr_worker_configured": bool(settings.ocr_worker_url),
     }
 
 
@@ -41,6 +42,7 @@ def ready() -> dict:
         "exports_root_parent_exists": exports_root.parent.exists(),
         "exports_root_gcs": settings.exports_root.startswith("gs://"),
         "knowledge_root_exists": knowledge_root.exists(),
+        "ocr_worker_url_configured": bool(settings.ocr_worker_url),
     }
     exports_ready = checks["exports_root_gcs"] or checks["exports_root_parent_exists"]
     status = "ready" if checks["cors_configured"] and exports_ready else "degraded"
