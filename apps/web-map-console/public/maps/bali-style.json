@@ -1,0 +1,81 @@
+{
+  "version": 8,
+  "name": "Time Rally Bali PMTiles",
+  "sources": {
+    "bali": {
+      "type": "vector",
+      "url": "pmtiles://https://storage.googleapis.com/timerally-bali-maps/maps/bali.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#e8f0e6"
+      }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "bali",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#9ed5ec"
+      }
+    },
+    {
+      "id": "landcover",
+      "type": "fill",
+      "source": "bali",
+      "source-layer": "landcover",
+      "paint": {
+        "fill-color": "#cfe5bd",
+        "fill-opacity": 0.7
+      }
+    },
+    {
+      "id": "landuse",
+      "type": "fill",
+      "source": "bali",
+      "source-layer": "landuse",
+      "paint": {
+        "fill-color": "#d7e8c7",
+        "fill-opacity": 0.58
+      }
+    },
+    {
+      "id": "buildings",
+      "type": "fill",
+      "source": "bali",
+      "source-layer": "building",
+      "minzoom": 13,
+      "paint": {
+        "fill-color": "#cfc5ba",
+        "fill-opacity": 0.75
+      }
+    },
+    {
+      "id": "roads-casing",
+      "type": "line",
+      "source": "bali",
+      "source-layer": "transportation",
+      "paint": {
+        "line-color": "#ffffff",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 7, 0.7, 12, 3.2, 15, 8],
+        "line-opacity": 0.92
+      }
+    },
+    {
+      "id": "roads",
+      "type": "line",
+      "source": "bali",
+      "source-layer": "transportation",
+      "paint": {
+        "line-color": "#4f626f",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 7, 0.45, 12, 1.8, 15, 4.8],
+        "line-opacity": 0.9
+      }
+    }
+  ]
+}
