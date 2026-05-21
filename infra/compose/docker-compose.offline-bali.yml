@@ -1,0 +1,98 @@
+# Offline Bali compose overlay.
+#
+# Dipakai bersama:
+#   docker compose \
+#     -f infra/compose/docker-compose.dev.yml \
+#     -f infra/compose/docker-compose.offline-bali.yml up -d
+#
+# Filosofi (dari deep-research-report 3):
+# - Build artefak (PBF, MBTiles, OSRM graph) dilakukan offline lewat tools/offline-bali/*.sh,
+# - File output ditaruh di host path ${OFFLINE_BALI_ROOT} (default /srv/timerally/offline),
+# - Tile server & OSRM hanya MEMBACA artefak (read-only mount),
+# - routing-gateway tetap dari compose.dev.yml, di-override env-nya supaya
+#   memforward `osrm`/`valhalla` ke service offline ini.
+#
+# Override edge node IP via ${OFFLINE_PUBLIC_URL} kalau perlu URL tile JSON yang konsisten.
+
+services:
+  tileserver-offline:
+    image: maptiler/tileserver-gl:latest
+    container_name: time-rally-tileserver-offline
+    command:
+      - --public_url
+      - "${OFFLINE_PUBLIC_URL:-http://localhost:8080/}"
+      - --file
+      - "/data/${OFFLINE_MBTILES_FILE:-bali-v2026-05.mbtiles}"
+    ports:
+      - "${OFFLINE_TILES_PORT:-8080}:8080"
+    volumes:
+      - "${OFFLINE_BALI_ROOT:-/srv/timerally/offline}/tiles:/data:ro"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  osrm-offline:
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    container_name: time-rally-osrm-offline
+    command:
+      - osrm-routed
+      - --algorithm
+      - mld
+      - "/data/${OFFLINE_OSRM_FILE:-bali-mainland.osrm}"
+    ports:
+      - "${OFFLINE_OSRM_PORT:-5000}:5000"
+    volumes:
+      - "${OFFLINE_BALI_ROOT:-/srv/timerally/offline}/osrm:/data:ro"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          wget -qO- "http://127.0.0.1:5000/nearest/v1/driving/115.212629,-8.670458?number=1"
+          | grep -q '"code":"Ok"' || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  valhalla-offline:
+    image: ghcr.io/valhalla/valhalla-scripted:latest
+    container_name: time-rally-valhalla-offline
+    profiles: ["valhalla-standby"]
+    ports:
+      - "${OFFLINE_VALHALLA_PORT:-8002}:8002"
+    environment:
+      use_tiles_ignore_pbf: "True"
+      build_admins: "True"
+      build_time_zones: "True"
+      build_elevation: "False"
+      serve_tiles: "True"
+      force_rebuild: "False"
+    volumes:
+      - "${OFFLINE_BALI_ROOT:-/srv/timerally/offline}/valhalla/custom_files:/custom_files"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8002/status | grep -q version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Override routing-gateway dari compose.dev.yml agar memforward ke instance offline ini.
+  routing-gateway:
+    environment:
+      APP_ENV: production
+      ROUTING_DEFAULT_PROVIDER: auto
+      ROUTING_PROVIDER_PRIMARY: osrm
+      ROUTING_PROVIDER_FALLBACK: valhalla
+      ROUTING_PROVIDER_STANDBY: graphhopper
+      ROUTING_ALLOW_MOCK_FALLBACK: "false"
+      OSRM_URL: http://osrm-offline:5000
+      VALHALLA_URL: http://valhalla-offline:8002
+    depends_on:
+      osrm-offline:
+        condition: service_healthy
