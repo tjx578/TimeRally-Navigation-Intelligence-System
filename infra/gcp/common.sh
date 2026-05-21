@@ -2,6 +2,16 @@
 # Helpers GCP. Source dari script lain.
 set -Eeuo pipefail
 
+COMMON_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &>/dev/null && pwd )"
+REPO_ROOT="$( cd -- "${COMMON_DIR}/../.." &>/dev/null && pwd )"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env.gcp}"
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+fi
+
 : "${PROJECT_ID:?PROJECT_ID belum diset. Contoh: export PROJECT_ID=timerally-prod}"
 : "${REGION:=asia-southeast2}"
 : "${ROUTING_ZONE:=${REGION}-a}"
