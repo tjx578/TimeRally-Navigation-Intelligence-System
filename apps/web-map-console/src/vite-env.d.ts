@@ -20,6 +20,8 @@ interface ImportMetaEnv {
   readonly VITE_ROUTING_GATEWAY_URL?: string;
   readonly VITE_OSRM_URL?: string;
   readonly VITE_VALHALLA_URL?: string;
+  // Debug toggle: pasang demo LineString merah supaya operator bisa cek layer line saat smoke test.
+  readonly VITE_DEBUG_DEMO_ROUTE?: string;
 }
 
 interface ImportMeta {
