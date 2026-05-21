@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
+from app.adapters.ocr_worker import OcrWorkerError, call_ocr_worker
 from app.schemas.contracts import (
     PhotoOcrRequest,
     PhotoOcrResponse,
@@ -13,10 +14,62 @@ from app.schemas.contracts import (
     RallyParseResponse,
     UnresolvedTokenResponse,
 )
+from app.settings import get_settings
 from app.use_cases import parse_rally_text
 
 
 router = APIRouter()
+
+
+def _manual_ocr_response(
+    request: PhotoOcrRequest,
+    warnings: list[str],
+    *,
+    reason: str = "Foto diterima, tetapi OCR worker belum dikonfigurasi. Tempel hasil OCR/manual text ke panel soal sebelum mapping dan export.",
+) -> PhotoOcrResponse:
+    return PhotoOcrResponse(
+        event_name="",
+        trayek_name="",
+        location="",
+        normalized_text="",
+        detected_total_distance_km=None,
+        detected_total_time_minutes=None,
+        photo_count=len(request.photos),
+        status="ocr_worker_unavailable_manual_parse_required",
+        warnings=[*warnings, reason],
+    )
+
+
+def _with_parsed_ocr_fields(
+    request: PhotoOcrRequest,
+    worker_response: PhotoOcrResponse,
+) -> PhotoOcrResponse:
+    raw_text = worker_response.normalized_text.strip()
+    if not request.auto_parse or not raw_text or worker_response.status == "failed":
+        return worker_response
+
+    parsed = parse_rally_text(raw_text=raw_text, event_name_hint=worker_response.event_name or None)
+    event = parsed.event
+    unresolved_warnings = [
+        f"{token.token}: {token.reason}" for token in parsed.unresolved_tokens
+    ]
+    return PhotoOcrResponse(
+        event_name=event.event_name,
+        trayek_name=event.trayek_name or worker_response.trayek_name,
+        location=event.location or worker_response.location,
+        normalized_text=event.normalized_text or worker_response.normalized_text,
+        detected_total_distance_km=event.total_distance_km,
+        detected_total_time_minutes=(
+            int(event.total_time_minutes) if event.total_time_minutes is not None else None
+        ),
+        photo_count=worker_response.photo_count,
+        status="ocr_ready" if event.sub_trayeks else "ocr_text_ready_manual_review",
+        warnings=[
+            *worker_response.warnings,
+            *parsed.warnings,
+            *unresolved_warnings,
+        ],
+    )
 
 
 @router.post("/parse", response_model=RallyParseResponse)
@@ -103,17 +156,20 @@ def photo_ocr(request: PhotoOcrRequest) -> PhotoOcrResponse:
             warnings.append("Setiap foto harus punya base64 atau filename.")
             break
 
-    return PhotoOcrResponse(
-        event_name="",
-        trayek_name="",
-        location="",
-        normalized_text="",
-        detected_total_distance_km=None,
-        detected_total_time_minutes=None,
-        photo_count=len(request.photos),
-        status="ocr_worker_unavailable_manual_parse_required",
-        warnings=[
-            *warnings,
-            "Foto diterima, tetapi OCR worker belum dikonfigurasi. Tempel hasil OCR/manual text ke panel soal sebelum mapping dan export.",
-        ],
-    )
+    if warnings:
+        return _manual_ocr_response(request, warnings)
+
+    settings = get_settings()
+    try:
+        worker_response = call_ocr_worker(request, settings)
+    except OcrWorkerError as exc:
+        return _manual_ocr_response(
+            request,
+            warnings,
+            reason=f"{exc} Gunakan input teks manual terverifikasi.",
+        )
+
+    if worker_response is None:
+        return _manual_ocr_response(request, warnings)
+
+    return _with_parsed_ocr_fields(request, worker_response)
