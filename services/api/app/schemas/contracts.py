@@ -23,6 +23,14 @@ class ParsedSubTrayekResponse(BaseModel):
     duration_minutes: float | None = None
     speed_mode: str
     distance_counted_in_total: bool
+    start_waypoint_id: str | None = None
+    finish_waypoint_id: str | None = None
+    start_raw_text: str | None = None
+    finish_raw_text: str | None = None
+    start_status: str = "missing"
+    finish_status: str = "missing"
+    needs_user_start: bool = False
+    needs_user_finish: bool = False
     waypoints: list[ParsedWaypointResponse]
 
 
