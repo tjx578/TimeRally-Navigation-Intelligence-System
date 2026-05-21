@@ -1,0 +1,42 @@
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: services/api/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../packages:/app/packages
+      - ../../services/api:/app/services/api
+      - ../../data:/app/data
+
+  routing-gateway:
+    build:
+      context: ../..
+      dockerfile: services/routing-gateway/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8010:8010"
+
+  place-resolver:
+    build:
+      context: ../..
+      dockerfile: services/place-resolver/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8011:8011"
+    volumes:
+      - ../../data/curated:/app/services/place-resolver/data/curated:ro
+
+  tracking-gateway:
+    build:
+      context: ../..
+      dockerfile: services/tracking-gateway/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8012:8012"

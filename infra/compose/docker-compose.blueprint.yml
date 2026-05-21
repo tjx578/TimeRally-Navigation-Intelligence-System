@@ -1,11 +1,44 @@
 services:
   api:
     build:
-      context: ../../services/api
+      context: ../..
+      dockerfile: services/api/Dockerfile
     env_file:
       - ../../.env
     ports:
       - "8000:8000"
+    depends_on:
+      - routing-gateway
+      - place-resolver
+
+  routing-gateway:
+    build:
+      context: ../..
+      dockerfile: services/routing-gateway/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8010:8010"
+
+  place-resolver:
+    build:
+      context: ../..
+      dockerfile: services/place-resolver/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8011:8011"
+    volumes:
+      - ../../data/curated:/app/services/place-resolver/data/curated:ro
+
+  tracking-gateway:
+    build:
+      context: ../..
+      dockerfile: services/tracking-gateway/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8012:8012"
 
   valhalla:
     image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
@@ -22,6 +55,23 @@ services:
     volumes:
       - ../../data/mapdata/osm_extracts:/data
 
+  graphhopper:
+    image: israelhikingmap/graphhopper:latest
+    ports:
+      - "8989:8989"
+    volumes:
+      - ../../data/mapdata/osm_extracts:/data
+
+  nominatim:
+    image: mediagis/nominatim:4.4
+    environment:
+      PBF_PATH: /nominatim/data/region.osm.pbf
+      REPLICATION_URL: ""
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../data/mapdata/osm_extracts:/nominatim/data
+
   tileserver:
     image: maptiler/tileserver-gl:latest
     ports:
@@ -33,4 +83,8 @@ services:
     image: traccar/traccar:latest
     ports:
       - "8082:8082"
+    volumes:
+      - traccar-data:/opt/traccar/data
 
+volumes:
+  traccar-data:
