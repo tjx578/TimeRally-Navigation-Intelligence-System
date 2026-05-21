@@ -1,0 +1,21 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'services/api/Dockerfile'
+      - '-t'
+      - 'asia-southeast2-docker.pkg.dev/time-rally-navigator/timerally/api:latest'
+      - '.'
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'workers/ocr/Dockerfile'
+      - '-t'
+      - 'asia-southeast2-docker.pkg.dev/time-rally-navigator/timerally/ocr-worker:latest'
+      - '.'
+
+images:
+  - 'asia-southeast2-docker.pkg.dev/time-rally-navigator/timerally/api:latest'
+  - 'asia-southeast2-docker.pkg.dev/time-rally-navigator/timerally/ocr-worker:latest'
