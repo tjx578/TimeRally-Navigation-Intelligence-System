@@ -1,0 +1,82 @@
+"""Smoke test API menggunakan TestClient FastAPI."""
+
+from __future__ import annotations
+
+import pytest
+
+try:
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    client = TestClient(app)
+except Exception as exc:  # pragma: no cover
+    client = None
+    pytestmark = pytest.mark.skip(reason=f"FastAPI test client tidak siap: {exc}")
+
+
+def test_health_endpoint():
+    assert client is not None
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ok"
+
+
+def test_parse_endpoint_minimal():
+    assert client is not None
+    resp = client.post(
+        "/v1/rally/parse",
+        json={"raw_text": "Sub A: dummy\nMode: Average Speed\nJarak: 10 km\nWaktu: 30 menit\nJT di O Lapangan"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["sub_trayek_count"] >= 1
+    assert body["waypoint_count"] >= 1
+
+
+def test_validation_route_endpoint():
+    assert client is not None
+    resp = client.post(
+        "/v1/validation/route",
+        json={
+            "target_distance_km": 10.0,
+            "target_time_minutes": 30,
+            "calculated_distance_km": 10.1,
+            "calculated_time_minutes": 30.2,
+            "chaining_gap_meters": 12,
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["distance_status"] in {"compliant", "warning", "violation", "unchecked"}
+
+
+def test_routing_endpoint_mock():
+    assert client is not None
+    resp = client.post(
+        "/v1/routing/route",
+        json={
+            "provider": "mock",
+            "profile": "rally_car",
+            "allow_reorder": False,
+            "waypoints": [
+                {"id": "w1", "name": "Start", "coordinate": {"lat": -8.67, "lng": 115.22}},
+                {"id": "w2", "name": "Finish", "coordinate": {"lat": -8.68, "lng": 115.23}},
+            ],
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total_distance_m"] > 0
+
+
+def test_export_endpoint_returns_artifacts():
+    assert client is not None
+    resp = client.post(
+        "/v1/export/artifacts",
+        json={"event_id": "evt-1", "formats": ["yaml", "gpx", "kml"]},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["artifacts"]) == 3
