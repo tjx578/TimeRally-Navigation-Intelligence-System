@@ -37,6 +37,7 @@ API_SERVICE="${API_SERVICE:-timerally-api}"
 ROUTING_GATEWAY_SERVICE="${ROUTING_GATEWAY_SERVICE:-timerally-routing-gateway}"
 PLACE_RESOLVER_SERVICE="${PLACE_RESOLVER_SERVICE:-timerally-place-resolver}"
 TRACKING_GATEWAY_SERVICE="${TRACKING_GATEWAY_SERVICE:-timerally-tracking-gateway}"
+OCR_SERVICE="${OCR_SERVICE:-timerally-ocr-worker}"
 WEB_SERVICE="${WEB_SERVICE:-timerally-web}"
 
 IMAGE_TAG="${IMAGE_TAG:-$(git rev-parse --short HEAD 2>/dev/null || date -u +%Y%m%d%H%M)}"
