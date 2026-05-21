@@ -12,6 +12,9 @@ interface ImportMetaEnv {
   // Offline Bali endpoints (lihat .env.local.example)
   readonly VITE_OFFLINE_MODE?: string;
   readonly VITE_MAP_STYLE_URL?: string;
+  readonly VITE_MAP_CENTER_LNG?: string;
+  readonly VITE_MAP_CENTER_LAT?: string;
+  readonly VITE_MAP_ZOOM?: string;
   readonly VITE_TILEJSON_URL?: string;
   readonly VITE_TILE_BASE_URL?: string;
   readonly VITE_ROUTING_GATEWAY_URL?: string;
