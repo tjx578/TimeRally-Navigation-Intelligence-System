@@ -1,0 +1,30 @@
+points:
+  - code: KSM
+    km: 2
+    lat: -8.6700
+    lng: 115.2210
+    description: KMPAL Kesiman 2 km dari titik nol
+    region: Denpasar Timur
+    confidence: 1.0
+    source: local_survey
+  - code: DPS
+    km: 11
+    lat: -8.6620
+    lng: 115.2120
+    description: KMPAL Denpasar 11 km
+    region: Denpasar
+    confidence: 1.0
+  - code: PNT
+    km: 0
+    lat: -8.6800
+    lng: 115.2780
+    description: Titik nol Penatih
+    region: Denpasar Timur
+    confidence: 1.0
+  - code: CT
+    km: 7
+    lat: -8.6510
+    lng: 115.2090
+    description: KMPAL Cokroaminoto 7 km
+    region: Denpasar Barat
+    confidence: 1.0

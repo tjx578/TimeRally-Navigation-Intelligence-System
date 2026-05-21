@@ -1,0 +1,37 @@
+entries:
+  - token: BKN
+    meaning: belok_kanan
+    kind: action
+    examples: ["BKN di O Lapangan Renon"]
+  - token: BKR
+    meaning: belok_kiri
+    kind: action
+  - token: JT
+    meaning: jalan_terus
+    kind: action
+  - token: BR
+    meaning: barat
+    kind: direction
+    case_sensitive: true
+  - token: br
+    meaning: banjar
+    kind: landmark_type
+    case_sensitive: true
+  - token: O
+    meaning: bundaran
+    kind: landmark_type
+  - token: X
+    meaning: simpang_empat
+    kind: landmark_type
+  - token: T
+    meaning: simpang_tiga
+    kind: landmark_type
+  - token: POM
+    meaning: spbu
+    kind: landmark_type
+  - token: LR
+    meaning: berlampu
+    kind: landmark_modifier
+  - token: KMPAL
+    meaning: penanda_km_titik_nol
+    kind: marker

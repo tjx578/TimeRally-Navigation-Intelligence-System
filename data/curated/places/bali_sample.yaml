@@ -1,0 +1,37 @@
+places:
+  - name: Pantai Mertasari
+    aliases: [mertasari, pantai mertasari sanur]
+    lat: -8.7106
+    lng: 115.2521
+    category: pantai
+    region: Denpasar
+    confidence: 0.98
+    source: curated_local
+  - name: KC Denpasar Barat
+    aliases: [kantor camat denpasar barat, kc denbar]
+    lat: -8.6553
+    lng: 115.2010
+    category: kantor_camat
+    region: Denpasar Barat
+    confidence: 0.97
+  - name: BPBD Denpasar
+    aliases: [bpbd denpasar, kantor bpbd kota denpasar]
+    lat: -8.6644
+    lng: 115.2333
+    category: kantor_bpbd
+    region: Denpasar
+    confidence: 0.97
+  - name: Lapangan Renon
+    aliases: [renon, lapangan puputan renon]
+    lat: -8.6705
+    lng: 115.2376
+    category: bundaran
+    region: Denpasar
+    confidence: 0.95
+  - name: SPBU Puputan
+    aliases: [pom puputan, spbu puputan]
+    lat: -8.6700
+    lng: 115.2280
+    category: spbu
+    region: Denpasar
+    confidence: 0.95
