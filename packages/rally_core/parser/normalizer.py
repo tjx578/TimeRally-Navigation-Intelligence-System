@@ -74,16 +74,32 @@ def split_sub_trayek_blocks(text: str) -> list[tuple[str, str]]:
         SUB A: ...
         Sub B - ...
         SUB-C ...
-        A. ...
+        Sub 1.1 ...
+        1.2) ...
         ### **A. ...**
         Segmen A ...
     """
+    label_pattern = r"([A-Z]|\d+(?:\.\d+)*)"
+    bare_label_pattern = r"([A-Z]|\d+\.\d+(?:\.\d+)*)"
+    dotted_label_pattern = r"(\d+\.\d+(?:\.\d+)*)"
     patterns = [
         re.compile(
             r"(?i)^\s*(?:#{1,6}\s*)?\*{0,2}(?:sub[\s\-]*trayek|sub|segmen)"
-            r"\s*([A-Z])\b[\s:.\-)]*(.*?)\*{0,2}\s*$"
+            + r"\s*"
+            + label_pattern
+            + r"\b[\s:.\-)]*(.*?)\*{0,2}\s*$"
         ),
-        re.compile(r"(?i)^\s*(?:#{1,6}\s*)?\*{0,2}([A-Z])[\.)]\s+(.+?)\*{0,2}\s*$"),
+        re.compile(
+            r"(?i)^\s*(?:#{1,6}\s*)?\*{0,2}trayek"
+            + r"\s*"
+            + dotted_label_pattern
+            + r"\b[\s:.\-)]*(.*?)\*{0,2}\s*$"
+        ),
+        re.compile(
+            r"(?i)^\s*(?:#{1,6}\s*)?\*{0,2}"
+            + bare_label_pattern
+            + r"[\.)]\s+(.+?)\*{0,2}\s*$"
+        ),
     ]
     blocks: list[tuple[str, str]] = []
     current_label: str | None = None
@@ -94,7 +110,8 @@ def split_sub_trayek_blocks(text: str) -> list[tuple[str, str]]:
         if match:
             if current_label is not None:
                 blocks.append((current_label, "\n".join(current_lines).strip()))
-            current_label = match.group(1).upper()
+            label = match.group(1)
+            current_label = label.upper() if label.isalpha() else label
             tail = _clean_sub_header_tail(match.group(2))
             current_lines = [f"Title: {tail}"] if tail else []
         else:
