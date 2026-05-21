@@ -12,6 +12,10 @@ from rally_core.routing.models import LatLng, Provider, RouteWaypoint
 router = APIRouter()
 
 
+def _rounded_int(value: object) -> int:
+    return int(round(float(value or 0)))
+
+
 @router.post("/route", response_model=RouteResponse)
 def route(request: RouteRequest) -> RouteResponse:
     provider_name: Provider = request.provider  # type: ignore[assignment]
@@ -33,8 +37,8 @@ def route(request: RouteRequest) -> RouteResponse:
         RouteLeg(
             from_waypoint=seg.from_waypoint,
             to_waypoint=seg.to_waypoint,
-            distance_m=seg.distance_m,
-            duration_s=seg.duration_s,
+            distance_m=_rounded_int(seg.distance_m),
+            duration_s=_rounded_int(seg.duration_s),
             provider=seg.provider,
             status=seg.status,
         )
@@ -43,7 +47,7 @@ def route(request: RouteRequest) -> RouteResponse:
     return RouteResponse(
         provider=result.provider,
         legs=legs,
-        total_distance_m=result.total_distance_m,
-        total_duration_s=result.total_duration_s,
+        total_distance_m=_rounded_int(result.total_distance_m),
+        total_duration_s=_rounded_int(result.total_duration_s),
         status="ok" if result.segments else "empty",
     )
