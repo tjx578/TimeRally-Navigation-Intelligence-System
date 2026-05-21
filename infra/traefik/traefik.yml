@@ -1,15 +1,48 @@
+## Static Traefik configuration mengikuti deep-research-report.
+## HTTP -> HTTPS redirect, Docker provider opt-in (exposedByDefault=false),
+## file provider untuk dynamic middleware dashboard auth.
+##
+## Catatan: jangan aktifkan `api.insecure: true` di production.
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
 entryPoints:
   web:
     address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
   websecure:
     address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
 
 providers:
   docker:
     exposedByDefault: false
+    network: time-rally-edge
+    watch: true
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
 
 api:
   dashboard: true
+  insecure: false
+
+log:
+  level: INFO
+  format: json
+
+accessLog:
+  format: json
+  bufferingSize: 200
 
 certificatesResolvers:
   letsencrypt:
