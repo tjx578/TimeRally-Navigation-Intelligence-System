@@ -43,7 +43,7 @@ services:
     networks:
       - time-rally-edge
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT:-8080}:8080"
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -52,7 +52,7 @@ services:
       - traefik.http.routers.web.entrypoints=websecure
       - traefik.http.routers.web.tls.certresolver=letsencrypt
       - traefik.http.routers.web.middlewares=rally-secure-headers@file
-      - traefik.http.services.web.loadbalancer.server.port=80
+      - traefik.http.services.web.loadbalancer.server.port=8080
 
   api:
     build:
