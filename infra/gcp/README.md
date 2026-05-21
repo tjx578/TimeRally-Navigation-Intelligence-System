@@ -20,23 +20,30 @@ sudah ada di `infra/compose/docker-compose.prod.yml` — pilih satu sebagai targ
 
 | File | Fungsi |
 |------|--------|
-| `bootstrap.sh`        | Enable API, buat Artifact Registry, Cloud SQL, GCS bucket, VM routing. Idempotent. |
+| `bootstrap.sh`        | Enable API, buat Artifact Registry, Cloud SQL, GCS bucket, firewall, service account. Idempotent. |
 | `build_and_push.sh`   | Build & push 4 image API/services + 1 image web ke Artifact Registry. |
 | `deploy_cloud_run.sh` | Deploy 4 Cloud Run services (api, routing-gateway, place-resolver, tracking-gateway) + 1 nginx web. |
 | `deploy_routing_vm.sh`| Generate cloud-init/startup-script untuk install Docker dan jalankan OSRM/Valhalla/TileServer di VM. |
 | `cloud_sql_migrate.sh`| Apply migration `supabase/migrations/cloudsql/*.sql` via Cloud SQL Auth Proxy. |
 | `secrets_load.sh`     | Sync secret lokal `.env.gcp` ke Secret Manager. |
+| `cloudbuild.yaml`     | Cloud Build definition untuk semua image production. |
+| `routing-vm-compose.yml` | Compose stack khusus VM routing GCP. |
 
 ## Quick start
 
 ```bash
+# 0. Copy env template
+cp .env.gcp.example .env.gcp
+# edit PROJECT_ID, domain, DATABASE_URL, OSRM_URL, VITE_PMTILES_URL
+
 # 1. Bootstrap
 export PROJECT_ID=timerally-prod
 export REGION=asia-southeast2
 export ROUTING_ZONE=asia-southeast2-a
 ./infra/gcp/bootstrap.sh
 
-# 2. Cloud SQL schema (PostGIS + tabel rally)
+# 2. Secret Manager + Cloud SQL schema (PostGIS + tabel rally)
+./infra/gcp/secrets_load.sh
 ./infra/gcp/cloud_sql_migrate.sh
 
 # 3. Build & push image
@@ -47,6 +54,14 @@ export ROUTING_ZONE=asia-southeast2-a
 
 # 5. Bring up routing VM (OSRM + Valhalla + TileServer)
 ./infra/gcp/deploy_routing_vm.sh
+```
+
+`deploy_routing_vm.sh` sengaja tidak otomatis menjalankan stack routing jika
+artefak Bali belum ada. Upload dulu `bali-latest.mbtiles` dan `bali-mainland.osrm*`
+ke `/srv/timerally/offline`, lalu jalankan ulang dengan:
+
+```bash
+START_ROUTING_STACK=true ./infra/gcp/deploy_routing_vm.sh
 ```
 
 ## Domain
@@ -74,6 +89,21 @@ Untuk MVP, pakai Cloud Run domain mapping per-service (`api.timerally.id`, `rout
 
 ## Hubungan dengan rancangan offline Bali
 
-VM routing GCP menjalankan stack yang sama dengan `infra/compose/docker-compose.offline-bali.yml`.
+VM routing GCP menjalankan stack yang kompatibel dengan `infra/compose/docker-compose.offline-bali.yml`.
 Artefak (PBF, MBTiles, OSRM graph) bisa dibangun di workstation pakai `tools/offline-bali/*.sh`
 lalu di-upload ke VM via `gcloud compute scp`. Lihat `ops/offline/bali/README.md`.
+
+## Quality gate
+
+Sebelum deploy ulang:
+
+```bash
+python -m ruff check .
+python -m pytest -q
+cd apps/web-map-console && npm run build
+docker compose --env-file .env.prod.example -f infra/compose/docker-compose.prod.yml config
+OFFLINE_BALI_ROOT=/tmp/timerally/offline docker compose \
+  -f infra/compose/docker-compose.dev.yml \
+  -f infra/compose/docker-compose.offline-bali.yml config
+bash -n infra/gcp/*.sh tools/offline-bali/*.sh
+```
