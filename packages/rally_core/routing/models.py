@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Literal, Optional
 
 
-Provider = Literal["valhalla", "osrm", "graphhopper", "google", "mock"]
+Provider = Literal["auto", "valhalla", "osrm", "graphhopper", "google", "mock"]
 
 
 @dataclass
@@ -53,7 +53,7 @@ class RouteSegment:
 @dataclass
 class RouteRequest:
     waypoints: list[RouteWaypoint]
-    provider: Provider = "valhalla"
+    provider: Provider = "auto"
     profile: str = "rally_car"
     allow_reorder: bool = False  # default: rally TIDAK boleh reorder
     avoid: list[str] = field(default_factory=list)
