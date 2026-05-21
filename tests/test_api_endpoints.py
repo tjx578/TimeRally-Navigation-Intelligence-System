@@ -23,6 +23,16 @@ def test_health_endpoint():
     assert body["status"] == "ok"
 
 
+def test_healthz_and_readyz_endpoints():
+    assert client is not None
+    health = client.get("/healthz")
+    ready = client.get("/readyz")
+    assert health.status_code == 200
+    assert ready.status_code == 200
+    assert health.json()["service"] == "api"
+    assert ready.json()["status"] in {"ready", "degraded"}
+
+
 def test_parse_endpoint_minimal():
     assert client is not None
     resp = client.post(
