@@ -1,5 +1,5 @@
-const CACHE_NAME = "time-rally-web-console-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
+const CACHE_NAME = "time-rally-web-console-v2";
+const APP_SHELL = ["/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -28,7 +28,24 @@ self.addEventListener("fetch", (event) => {
   }
 
   const url = new URL(request.url);
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   if (url.pathname.startsWith("/v1/")) {
+    return;
+  }
+
+  if (request.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+    );
     return;
   }
 
