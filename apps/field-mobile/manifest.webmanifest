@@ -1,0 +1,16 @@
+{
+  "name": "Time Rally Field Mobile",
+  "short_name": "TimeRally",
+  "description": "Field navigation companion untuk navigator dan co-driver rally.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#1e88e5",
+  "icons": [
+    {"src": "/icons/icon-192.png", "type": "image/png", "sizes": "192x192"},
+    {"src": "/icons/icon-512.png", "type": "image/png", "sizes": "512x512"}
+  ],
+  "categories": ["navigation", "sports"],
+  "lang": "id"
+}
