@@ -45,6 +45,33 @@ def test_parse_endpoint_minimal():
     assert body["waypoint_count"] >= 1
 
 
+def test_parse_endpoint_exposes_start_finish_state():
+    assert client is not None
+    resp = client.post(
+        "/v1/rally/parse",
+        json={
+            "raw_text": (
+                "Sub 1.1:\n"
+                "START - BKR - BR Anyar Tembles, dengan jarak, 15,8km\n\n"
+                "Sub 1.2:\n"
+                "BKR - Jalan Rama - Finish di Kantor Desa Pergung, jarak 4,2km"
+            )
+        },
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    sub_11, sub_12 = body["sub_trayeks"]
+    assert sub_11["label"] == "1.1"
+    assert sub_11["start_status"] == "missing_location"
+    assert sub_11["needs_user_start"] is True
+    assert sub_11["finish_status"] == "inferred_last_waypoint"
+    assert sub_11["finish_raw_text"] == "BR Anyar Tembles"
+    assert sub_12["start_status"] == "inherited"
+    assert sub_12["start_raw_text"] == "BR Anyar Tembles"
+    assert sub_12["finish_status"] == "explicit"
+
+
 def test_photo_ocr_without_worker_falls_back_to_manual():
     assert client is not None
     resp = client.post(
