@@ -1,0 +1,12 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'apps/web-map-console/Dockerfile'
+      - '-t'
+      - 'asia-southeast2-docker.pkg.dev/time-rally-navigator/timerally/web:latest'
+      - '.'
+
+images:
+  - 'asia-southeast2-docker.pkg.dev/time-rally-navigator/timerally/web:latest'
