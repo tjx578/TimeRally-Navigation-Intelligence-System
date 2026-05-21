@@ -17,6 +17,7 @@ apps/web-map-console/node_modules/.vite/
 .env.*
 !.env.example
 !.env.prod.example
+!.env.gcp.example
 !apps/web-map-console/.env.production.example
 
 # Runtime outputs
