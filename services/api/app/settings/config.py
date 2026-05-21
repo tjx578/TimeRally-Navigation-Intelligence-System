@@ -44,6 +44,11 @@ class Settings:
     supabase_db_url: str | None = None
     supabase_exports_bucket: str = "exports-private"
     supabase_uploads_bucket: str = "uploads-private"
+    # Google Cloud Storage mode. When EXPORTS_ROOT starts with gs:// this bucket
+    # is inferred automatically, but explicit values help scripts and readiness.
+    gcs_bucket_name: str | None = None
+    gcs_exports_prefix: str = "exports"
+    gcs_photos_prefix: str = "photos"
     # Observability.
     sentry_dsn: str | None = None
     sentry_environment: str = "development"
@@ -121,6 +126,9 @@ def get_settings() -> Settings:
         supabase_db_url=os.getenv("SUPABASE_DB_URL") or None,
         supabase_exports_bucket=os.getenv("SUPABASE_EXPORTS_BUCKET", "exports-private"),
         supabase_uploads_bucket=os.getenv("SUPABASE_UPLOADS_BUCKET", "uploads-private"),
+        gcs_bucket_name=os.getenv("GCS_BUCKET_NAME") or None,
+        gcs_exports_prefix=os.getenv("GCS_EXPORTS_PREFIX", "exports").strip("/"),
+        gcs_photos_prefix=os.getenv("GCS_PHOTOS_PREFIX", "photos").strip("/"),
         sentry_dsn=os.getenv("SENTRY_DSN") or None,
         sentry_environment=os.getenv("SENTRY_ENVIRONMENT", app_env),
         sentry_traces_sample_rate=_to_float(os.getenv("SENTRY_TRACES_SAMPLE_RATE"), 0.0),
