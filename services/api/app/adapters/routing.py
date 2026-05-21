@@ -97,6 +97,100 @@ class GatewayRoutingProvider:
     def _base_url(self) -> str:
         return (self.base_url or get_settings().routing_gateway_url).rstrip("/")
 
+    def _route_direct_osrm(self, request: RouteRequest, warning_prefix: str | None = None) -> ProviderResult:
+        """Fallback untuk deployment lapangan yang menunjuk langsung ke OSRM.
+
+        Beberapa setup GCP memakai `ROUTING_GATEWAY_URL=http://<vm>/osrm`.
+        Itu adalah endpoint OSRM mentah, bukan service `routing-gateway`.
+        """
+        if len(request.waypoints) < 2:
+            return ProviderResult(
+                provider=self.name,
+                segments=[],
+                total_distance_m=0,
+                total_duration_s=0,
+                confidence=0.5,
+                warnings=["minimum 2 waypoint diperlukan"],
+            )
+
+        coords = ";".join(f"{wp.coord.lng},{wp.coord.lat}" for wp in request.waypoints)
+        params = {
+            "overview": "full",
+            "geometries": "geojson",
+            "steps": "false",
+            "alternatives": "false",
+        }
+        try:
+            with httpx.Client(timeout=self.timeout_s) as client:
+                response = client.get(f"{self._base_url()}/route/v1/driving/{coords}", params=params)
+                response.raise_for_status()
+                data = response.json()
+        except Exception as exc:  # noqa: BLE001
+            warnings = [f"direct_osrm_unreachable:{exc}"]
+            if warning_prefix:
+                warnings.insert(0, warning_prefix)
+            return ProviderResult(
+                provider=self.name,
+                segments=[],
+                total_distance_m=0,
+                total_duration_s=0,
+                confidence=0.0,
+                warnings=warnings,
+            )
+
+        routes = data.get("routes") or []
+        if not routes:
+            warnings = ["direct_osrm_no_route"]
+            if warning_prefix:
+                warnings.insert(0, warning_prefix)
+            return ProviderResult(
+                provider=self.name,
+                segments=[],
+                total_distance_m=0,
+                total_duration_s=0,
+                confidence=0.0,
+                warnings=warnings,
+            )
+
+        route = routes[0]
+        legs = route.get("legs") or []
+        route_geometry = [
+            LatLng(lat=float(pt[1]), lng=float(pt[0]))
+            for pt in route.get("geometry", {}).get("coordinates", [])
+            if isinstance(pt, list) and len(pt) >= 2
+        ]
+        segments: list[RouteSegment] = []
+        total_d = 0
+        total_t = 0
+        for idx, leg in enumerate(legs):
+            if idx + 1 >= len(request.waypoints):
+                break
+            distance_m = _rounded_int(leg.get("distance", 0))
+            duration_s = _rounded_int(leg.get("duration", 0))
+            total_d += distance_m
+            total_t += duration_s
+            segments.append(
+                RouteSegment(
+                    from_waypoint=request.waypoints[idx].id,
+                    to_waypoint=request.waypoints[idx + 1].id,
+                    distance_m=distance_m,
+                    duration_s=duration_s,
+                    polyline=route_geometry,
+                    provider=self.name,
+                    status="ok",
+                )
+            )
+
+        warnings = [warning_prefix] if warning_prefix else []
+        return ProviderResult(
+            provider=self.name,
+            segments=segments,
+            total_distance_m=total_d or _rounded_int(route.get("distance", 0)),
+            total_duration_s=total_t or _rounded_int(route.get("duration", 0)),
+            confidence=0.95,
+            warnings=warnings,
+        )
+
     def route(self, request: RouteRequest) -> ProviderResult:
         payload = {
             "provider": self.name,
@@ -120,6 +214,11 @@ class GatewayRoutingProvider:
                 response.raise_for_status()
                 data = response.json()
         except Exception as exc:  # noqa: BLE001
+            if self.name == "osrm":
+                return self._route_direct_osrm(
+                    request,
+                    warning_prefix=f"routing_gateway_unreachable:{exc}",
+                )
             return ProviderResult(
                 provider=self.name,
                 segments=[],
