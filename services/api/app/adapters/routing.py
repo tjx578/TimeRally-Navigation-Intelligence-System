@@ -26,6 +26,10 @@ from rally_core.routing.models import (
 )
 
 
+def _rounded_int(value: object) -> int:
+    return int(round(float(value or 0)))
+
+
 @dataclass
 class MockRoutingProvider:
     """Hitung segmen rute lurus dengan asumsi kecepatan rata-rata.
@@ -136,8 +140,8 @@ class GatewayRoutingProvider:
                 RouteSegment(
                     from_waypoint=segment["from_waypoint"],
                     to_waypoint=segment["to_waypoint"],
-                    distance_m=int(segment.get("distance_m", 0)),
-                    duration_s=int(segment.get("duration_s", 0)),
+                    distance_m=_rounded_int(segment.get("distance_m", 0)),
+                    duration_s=_rounded_int(segment.get("duration_s", 0)),
                     polyline=polyline,
                     provider=self.name,
                     status=segment.get("status", "ok"),
@@ -146,8 +150,8 @@ class GatewayRoutingProvider:
         return ProviderResult(
             provider=self.name,
             segments=segments,
-            total_distance_m=int(data.get("total_distance_m", 0)),
-            total_duration_s=int(data.get("total_duration_s", 0)),
+            total_distance_m=_rounded_int(data.get("total_distance_m", 0)),
+            total_duration_s=_rounded_int(data.get("total_duration_s", 0)),
             confidence=float(data.get("confidence", 1.0)),
             warnings=list(data.get("warnings", [])),
         )
