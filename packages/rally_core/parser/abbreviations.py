@@ -44,6 +44,9 @@ LANDMARK_TYPES: dict[str, str] = {
     "T": "simpang_tiga",
     "POM": "spbu",
     "SPBU": "spbu",
+    "RS": "rumah_sakit",
+    "RSU": "rumah_sakit",
+    "RSP": "rumah_sakit",
     "JB": "jembatan",
     "JMB": "jembatan",
     "SDN": "sekolah_dasar",
@@ -103,6 +106,7 @@ SPEED_MODE_TOKENS: dict[str, str] = {
 # Relasi spasial
 RELATION_PREPS: dict[str, str] = {
     "di": "at",
+    "menuju": "toward",
     "sblm": "before",
     "sebelum": "before",
     "stlh": "after",
