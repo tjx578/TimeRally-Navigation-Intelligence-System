@@ -1,6 +1,31 @@
 name: time-rally-prod
 
+networks:
+  time-rally-edge:
+    name: time-rally-edge
+
 services:
+  traefik:
+    image: traefik:v3.2
+    profiles: ["edge"]
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    networks:
+      - time-rally-edge
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../traefik/dynamic:/etc/traefik/dynamic:ro
+      - traefik_letsencrypt:/letsencrypt
+    environment:
+      TRAEFIK_ACME_EMAIL: ${TRAEFIK_ACME_EMAIL:-ops@example.com}
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+
   web:
     build:
       context: ../..
@@ -10,12 +35,24 @@ services:
         VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
         VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
         VITE_PMTILES_URL: ${VITE_PMTILES_URL}
+        VITE_ROUTING_PUBLIC_BASE: ${VITE_ROUTING_PUBLIC_BASE}
+        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN}
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - time-rally-edge
     ports:
       - "${WEB_PORT:-8080}:80"
     restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=time-rally-edge
+      - traefik.http.routers.web.rule=Host(`${WEB_HOST:-app.example.com}`)
+      - traefik.http.routers.web.entrypoints=websecure
+      - traefik.http.routers.web.tls.certresolver=letsencrypt
+      - traefik.http.routers.web.middlewares=rally-secure-headers@file
+      - traefik.http.services.web.loadbalancer.server.port=80
 
   api:
     build:
@@ -36,12 +73,22 @@ services:
         condition: service_healthy
       place-resolver:
         condition: service_healthy
+    networks:
+      - time-rally-edge
     ports:
       - "${API_PORT:-8000}:8000"
     volumes:
       - exports:/app/services/api/exports
       - ../../data/curated:/app/data/curated:ro
     restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=time-rally-edge
+      - traefik.http.routers.api.rule=Host(`${API_HOST:-api.example.com}`)
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.tls.certresolver=letsencrypt
+      - traefik.http.routers.api.middlewares=rally-secure-headers@file,rally-api-ratelimit@file
+      - traefik.http.services.api.loadbalancer.server.port=8000
 
   routing-gateway:
     build:
@@ -164,3 +211,4 @@ volumes:
   graphhopper_data:
   prometheus_data:
   valhalla_tiles:
+  traefik_letsencrypt:
