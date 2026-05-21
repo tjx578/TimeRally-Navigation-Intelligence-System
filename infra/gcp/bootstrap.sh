@@ -21,6 +21,7 @@ gcloud services enable \
   secretmanager.googleapis.com \
   storage.googleapis.com \
   cloudbuild.googleapis.com \
+  vision.googleapis.com \
   monitoring.googleapis.com \
   logging.googleapis.com \
   vpcaccess.googleapis.com \
