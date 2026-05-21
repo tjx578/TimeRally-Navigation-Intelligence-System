@@ -78,3 +78,53 @@ def test_parse_liaison_zero_trip_not_counted_in_total():
     sub_a = result.event.sub_trayeks[0]
     assert sub_a.speed_mode == "liaison_zero_trip"
     assert sub_a.distance_counted_in_total is False
+
+
+def test_parse_legacy_markdown_letter_headers_and_fixed_minute():
+    raw = """
+### **A. Menuju Zero Trip**
+* **Waktu:** 5 menit
+* **Jarak:** Tidak ditentukan (berbasis waktu)
+* **Titik Navigasi:**
+  1. Start, Jl. Mulawarman
+  2. BKN di X LR
+
+B. Zero Trip:
+Waktu: 60 menit
+Jarak: 20,10 km
+Mode Kecepatan: Tetap Menit
+1. BKR di KSM 2
+2. JT di DPS 11
+"""
+    result = RallyParser().parse(raw)
+    assert [sub.label for sub in result.event.sub_trayeks] == ["A", "B"]
+    sub_a, sub_b = result.event.sub_trayeks
+    assert sub_a.distance_km is None
+    assert sub_a.distance_counted_in_total is False
+    assert sub_b.speed_mode == "fixed_minute"
+    assert sub_b.distance_km == 20.1
+    assert sub_b.waypoints[0].kmpal_marker == "KSM 2"
+
+
+def test_speed_kmh_is_not_misread_as_distance():
+    raw = """
+Sub B: Zero trip ke finish
+Mode: Average Speed
+Waktu: 38 menit
+Kecepatan: 19,67 km/jam
+BKR di X Penarungan
+"""
+    result = RallyParser().parse(raw)
+    sub_b = result.event.sub_trayeks[0]
+    assert sub_b.distance_km is None
+    assert sub_b.duration_minutes == 38
+
+
+def test_parse_free_time_mode_from_santai():
+    raw = """
+Sub D: Santai sambil melihat objek
+Selama 45 menit
+Arah Ubud/Gianyar - IJU - BR. Kedewatan
+"""
+    result = RallyParser().parse(raw)
+    assert result.event.sub_trayeks[0].speed_mode == "free_time"
