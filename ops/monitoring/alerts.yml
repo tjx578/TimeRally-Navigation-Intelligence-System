@@ -1,0 +1,11 @@
+groups:
+  - name: time-rally-availability
+    rules:
+      - alert: TimeRallyTargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TimeRally target is down"
+          description: "{{ $labels.job }} at {{ $labels.instance }} has been unreachable for 2 minutes."

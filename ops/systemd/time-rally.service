@@ -1,0 +1,16 @@
+[Unit]
+Description=TimeRally production stack
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/time-rally/repo
+ExecStart=/usr/bin/docker compose --env-file .env.prod -f infra/compose/docker-compose.prod.yml up -d
+ExecStop=/usr/bin/docker compose --env-file .env.prod -f infra/compose/docker-compose.prod.yml down
+RemainAfterExit=yes
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
