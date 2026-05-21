@@ -1,10 +1,10 @@
-"""Use case: bangun semua artefak export dan tulis ke disk."""
+"""Use case: bangun semua artefak export dan tulis ke configured sink."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.adapters.export_sink import FilesystemExportSink
+from app.adapters.export_sink import get_export_sink
 
 from rally_core.exporters import (
     build_offline_manifest,
@@ -49,41 +49,41 @@ class ExportResultPayload:
 
 
 def export_event_artifacts(payload: ExportRequestPayload) -> ExportResultPayload:
-    sink = FilesystemExportSink()
+    sink = get_export_sink()
     artifacts: list[GeneratedArtifact] = []
     manifest_artifacts: list[OfflineArtifact] = []
     waypoints_by_id = {wp.id: wp for wp in payload.waypoints}
 
     if "yaml" in payload.formats:
         content = export_event_yaml(payload.event)
-        path = sink.write(payload.event_id, "event.yaml", content)
-        artifacts.append(GeneratedArtifact("yaml", str(path), path.stat().st_size))
+        artifact = sink.write(payload.event_id, "event.yaml", content)
+        artifacts.append(GeneratedArtifact("yaml", artifact.path, artifact.size_bytes))
         manifest_artifacts.append(
             OfflineArtifact(
-                name="event", format="yaml", path=str(path), size_bytes=path.stat().st_size
+                name="event", format="yaml", path=artifact.path, size_bytes=artifact.size_bytes
             )
         )
     if "gpx" in payload.formats:
         gpx = export_gpx(payload.event.event_name, payload.waypoints, payload.segments)
-        path = sink.write(payload.event_id, "route.gpx", gpx)
-        artifacts.append(GeneratedArtifact("gpx", str(path), path.stat().st_size))
+        artifact = sink.write(payload.event_id, "route.gpx", gpx)
+        artifacts.append(GeneratedArtifact("gpx", artifact.path, artifact.size_bytes))
         manifest_artifacts.append(
-            OfflineArtifact(name="route", format="gpx", path=str(path), size_bytes=path.stat().st_size)
+            OfflineArtifact(name="route", format="gpx", path=artifact.path, size_bytes=artifact.size_bytes)
         )
     if "kml" in payload.formats:
         kml = export_kml(payload.event.event_name, payload.waypoints, payload.segments)
-        path = sink.write(payload.event_id, "route.kml", kml)
-        artifacts.append(GeneratedArtifact("kml", str(path), path.stat().st_size))
+        artifact = sink.write(payload.event_id, "route.kml", kml)
+        artifacts.append(GeneratedArtifact("kml", artifact.path, artifact.size_bytes))
         manifest_artifacts.append(
-            OfflineArtifact(name="route", format="kml", path=str(path), size_bytes=path.stat().st_size)
+            OfflineArtifact(name="route", format="kml", path=artifact.path, size_bytes=artifact.size_bytes)
         )
     if "geojson" in payload.formats:
         gj = export_geojson(payload.waypoints, payload.segments)
-        path = sink.write(payload.event_id, "route.geojson", gj)
-        artifacts.append(GeneratedArtifact("geojson", str(path), path.stat().st_size))
+        artifact = sink.write(payload.event_id, "route.geojson", gj)
+        artifacts.append(GeneratedArtifact("geojson", artifact.path, artifact.size_bytes))
         manifest_artifacts.append(
             OfflineArtifact(
-                name="route", format="geojson", path=str(path), size_bytes=path.stat().st_size
+                name="route", format="geojson", path=artifact.path, size_bytes=artifact.size_bytes
             )
         )
     if "roadbook.md" in payload.formats:
@@ -93,11 +93,11 @@ def export_event_artifacts(payload: ExportRequestPayload) -> ExportResultPayload
             payload.rally_start_clock_minutes,
         )
         md = render_roadbook_markdown(payload.event.event_name, legs)
-        path = sink.write(payload.event_id, "roadbook.md", md)
-        artifacts.append(GeneratedArtifact("roadbook.md", str(path), path.stat().st_size))
+        artifact = sink.write(payload.event_id, "roadbook.md", md)
+        artifacts.append(GeneratedArtifact("roadbook.md", artifact.path, artifact.size_bytes))
         manifest_artifacts.append(
             OfflineArtifact(
-                name="roadbook", format="md", path=str(path), size_bytes=path.stat().st_size
+                name="roadbook", format="md", path=artifact.path, size_bytes=artifact.size_bytes
             )
         )
 
@@ -108,7 +108,7 @@ def export_event_artifacts(payload: ExportRequestPayload) -> ExportResultPayload
     )
     import json
 
-    manifest_path = sink.write(
+    manifest_artifact = sink.write(
         payload.event_id,
         "manifest.json",
         json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2),
@@ -116,6 +116,6 @@ def export_event_artifacts(payload: ExportRequestPayload) -> ExportResultPayload
     return ExportResultPayload(
         event_id=payload.event_id,
         artifacts=artifacts,
-        manifest_path=str(manifest_path),
+        manifest_path=manifest_artifact.path,
         notes=[f"{len(artifacts)} artefak berhasil dibuat"],
     )
