@@ -5,12 +5,14 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.observability import init_sentry
 from app.routers import exports, health, places, probability, rally, routing, validation
 from app.settings import get_settings
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    init_sentry()  # no-op kalau SENTRY_DSN tidak diset
     app = FastAPI(
         title="Time Rally Navigation Intelligence System",
         version="0.1.0",
