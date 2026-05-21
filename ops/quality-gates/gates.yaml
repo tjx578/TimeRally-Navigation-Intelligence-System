@@ -1,0 +1,43 @@
+version: 1
+name: time-rally-quality-gates
+description: |
+  Gates yang harus dilalui sebelum suatu event dianggap siap lomba.
+  Dipakai oleh CI dan oleh /v1/scoring (ChampionshipScorer).
+
+gates:
+  - id: clarity
+    description: Specification soal harus lengkap (event_name, total_distance, total_time).
+    blocking: true
+  - id: knowledge_hit
+    description: Minimal 80% waypoint resolved local-first.
+    threshold: 0.8
+    blocking: true
+  - id: distance_compliance
+    description: Total dan per-sub distance harus dalam toleransi.
+    threshold: 1.0
+    blocking: true
+  - id: time_compliance
+    description: Total dan per-sub waktu harus dalam toleransi.
+    threshold: 1.0
+    blocking: true
+  - id: chaining
+    description: Chaining sub-trayek finish->start <= 50 m.
+    threshold: 50
+    unit: meters
+    blocking: true
+  - id: coordinate_precision
+    description: Semua koordinat minimal 5 desimal.
+    threshold: 0
+    unit: low_precision_count
+    blocking: true
+  - id: route_realism
+    description: Rasio route/straight-line <= 2.5.
+    threshold: 2.5
+    blocking: false
+  - id: ambiguity_review
+    description: Tidak ada ambiguity dengan severity blocker.
+    blocking: true
+  - id: export_completeness
+    description: Artefak YAML, GPX, KML, GeoJSON, Roadbook harus terbuat.
+    threshold: 5
+    blocking: true
