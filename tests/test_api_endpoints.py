@@ -45,6 +45,27 @@ def test_parse_endpoint_minimal():
     assert body["waypoint_count"] >= 1
 
 
+def test_photo_ocr_without_worker_falls_back_to_manual():
+    assert client is not None
+    resp = client.post(
+        "/v1/rally/photo-ocr",
+        json={
+            "photos": [
+                {
+                    "filename": "soal.jpg",
+                    "mime_type": "image/jpeg",
+                    "image_base64": "dGVzdA==",
+                }
+            ]
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ocr_worker_unavailable_manual_parse_required"
+    assert body["photo_count"] == 1
+    assert "OCR worker belum dikonfigurasi" in " ".join(body["warnings"])
+
+
 def test_validation_route_endpoint():
     assert client is not None
     resp = client.post(
