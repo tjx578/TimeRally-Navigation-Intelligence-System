@@ -1,0 +1,175 @@
+name: deploy-production
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_ORG: ${{ github.repository_owner }}
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set lowercase image org
+        id: lower
+        run: echo "value=${IMAGE_ORG,,}" >> "$GITHUB_OUTPUT"
+        env:
+          IMAGE_ORG: ${{ env.IMAGE_ORG }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-api:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push routing-gateway
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/routing-gateway/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-routing-gateway:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-routing-gateway:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push place-resolver
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/place-resolver/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-place-resolver:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-place-resolver:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push tracking-gateway
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/tracking-gateway/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-tracking-gateway:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-tracking-gateway:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web-map-console/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_PMTILES_URL=${{ secrets.VITE_PMTILES_URL }}
+            VITE_ROUTING_PUBLIC_BASE=${{ secrets.VITE_ROUTING_PUBLIC_BASE }}
+            VITE_SENTRY_DSN=${{ secrets.VITE_SENTRY_DSN }}
+            VITE_SENTRY_ENVIRONMENT=production
+            VITE_SENTRY_TRACES_SAMPLE_RATE=0.05
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-web:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ steps.lower.outputs.value }}/time-rally-web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  supabase-migrations:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Push migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db push --include-all
+
+  deploy-app-vps:
+    needs: [build-and-push, supabase-migrations]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy app VPS over SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST_APP }}
+          SSH_USER: ${{ secrets.SSH_USER_APP }}
+          SSH_KEY: ${{ secrets.SSH_KEY_APP }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa "$SSH_USER@$SSH_HOST" "set -e; \
+            cd /opt/timerally && \
+            git fetch --all --tags && \
+            git checkout ${{ github.sha }} && \
+            cd infra/compose && \
+            IMAGE_TAG=$IMAGE_TAG docker compose --profile edge -f docker-compose.prod.yml pull && \
+            IMAGE_TAG=$IMAGE_TAG docker compose --profile edge -f docker-compose.prod.yml up -d"
+
+  deploy-routing-vps:
+    needs: [build-and-push]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy routing VPS over SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST_ROUTE }}
+          SSH_USER: ${{ secrets.SSH_USER_ROUTE }}
+          SSH_KEY: ${{ secrets.SSH_KEY_ROUTE }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa "$SSH_USER@$SSH_HOST" "set -e; \
+            cd /opt/timerally-routing && \
+            git fetch --all --tags && \
+            git checkout ${{ github.sha }} && \
+            cd infra/compose && \
+            IMAGE_TAG=$IMAGE_TAG docker compose --profile routing-engines -f docker-compose.prod.yml pull && \
+            IMAGE_TAG=$IMAGE_TAG docker compose --profile routing-engines -f docker-compose.prod.yml up -d"
