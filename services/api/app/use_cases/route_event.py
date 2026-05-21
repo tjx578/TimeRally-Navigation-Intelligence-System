@@ -25,7 +25,7 @@ _adapter = RoutingAdapter(
 def route_event(
     waypoints: list[RouteWaypoint],
     *,
-    provider: Provider = "valhalla",
+    provider: Provider = "auto",
     profile: str = "rally_car",
     allow_reorder: bool = False,
 ) -> ProviderResult:

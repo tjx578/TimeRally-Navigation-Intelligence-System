@@ -11,7 +11,7 @@ class RoutingWaypoint(BaseModel):
 
 class RouteRequest(BaseModel):
     waypoints: list[RoutingWaypoint]
-    provider: str = "valhalla"
+    provider: str = "auto"
     profile: str = "rally_car"
     allow_reorder: bool = False
 
@@ -31,4 +31,3 @@ class RouteResponse(BaseModel):
     total_distance_m: int
     total_duration_s: int
     status: str
-

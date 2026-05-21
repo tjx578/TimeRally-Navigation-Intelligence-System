@@ -3,7 +3,7 @@
 Eksposes:
 - POST /v1/places/search
 - POST /v1/places/reverse
-- GET  /health
+- GET  /health, /healthz, /readyz
 """
 
 from __future__ import annotations
@@ -106,6 +106,28 @@ def health() -> dict:
         "google_enabled": _GOOGLE.enabled,
         "kmpal_points": len(_INDEX.kmpal.points),
         "places_local": len(_INDEX.places.aliases),
+    }
+
+
+@app.get("/healthz")
+def healthz() -> dict:
+    return health()
+
+
+@app.get("/readyz")
+def ready() -> dict:
+    kmpal_points = len(_INDEX.kmpal.points)
+    places_local = len(_INDEX.places.aliases)
+    has_local_knowledge = kmpal_points > 0 or places_local > 0
+    return {
+        "status": "ready" if has_local_knowledge else "degraded",
+        "checks": {
+            "local_knowledge_loaded": has_local_knowledge,
+            "kmpal_points": kmpal_points,
+            "places_local": places_local,
+            "nominatim_configured": bool(_NOMINATIM.base_url),
+            "google_enabled": _GOOGLE.enabled,
+        },
     }
 
 

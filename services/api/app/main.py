@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import exports, places, probability, rally, routing, validation
+from app.routers import exports, health, places, probability, rally, routing, validation
 from app.settings import get_settings
 
 
@@ -25,21 +25,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    app.include_router(health.router, tags=["health"])
     app.include_router(rally.router, prefix="/v1/rally", tags=["rally"])
     app.include_router(places.router, prefix="/v1/places", tags=["places"])
     app.include_router(routing.router, prefix="/v1/routing", tags=["routing"])
     app.include_router(validation.router, prefix="/v1/validation", tags=["validation"])
     app.include_router(exports.router, prefix="/v1/export", tags=["export"])
     app.include_router(probability.router, prefix="/v1/probability", tags=["probability"])
-
-    @app.get("/health")
-    def health() -> dict:
-        return {
-            "status": "ok",
-            "app_env": settings.app_env,
-            "routing_default_provider": settings.routing_default_provider,
-            "google_enabled": settings.google_enabled,
-        }
 
     @app.get("/")
     def root() -> dict:

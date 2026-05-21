@@ -16,7 +16,11 @@ class Settings:
     app_env: str = "development"
     database_url: str | None = None
     redis_url: str | None = None
-    routing_default_provider: str = "valhalla"
+    routing_default_provider: str = "auto"
+    routing_provider_primary: str = "osrm"
+    routing_provider_fallback: str = "valhalla"
+    routing_provider_standby: str = "graphhopper"
+    routing_allow_mock_fallback: bool = True
     routing_gateway_url: str = "http://routing-gateway:8010"
     valhalla_url: str = "http://localhost:8002"
     osrm_url: str = "http://localhost:5000"
@@ -50,7 +54,14 @@ def get_settings() -> Settings:
         app_env=os.getenv("APP_ENV", "development"),
         database_url=os.getenv("DATABASE_URL"),
         redis_url=os.getenv("REDIS_URL"),
-        routing_default_provider=os.getenv("ROUTING_DEFAULT_PROVIDER", "valhalla"),
+        routing_default_provider=os.getenv("ROUTING_DEFAULT_PROVIDER", "auto"),
+        routing_provider_primary=os.getenv("ROUTING_PROVIDER_PRIMARY", "osrm"),
+        routing_provider_fallback=os.getenv("ROUTING_PROVIDER_FALLBACK", "valhalla"),
+        routing_provider_standby=os.getenv("ROUTING_PROVIDER_STANDBY", "graphhopper"),
+        routing_allow_mock_fallback=_to_bool(
+            os.getenv("ROUTING_ALLOW_MOCK_FALLBACK"),
+            default=os.getenv("APP_ENV", "development").strip().lower() != "production",
+        ),
         routing_gateway_url=os.getenv("ROUTING_GATEWAY_URL", "http://routing-gateway:8010"),
         valhalla_url=os.getenv("VALHALLA_URL", "http://localhost:8002"),
         osrm_url=os.getenv("OSRM_URL", "http://localhost:5000"),

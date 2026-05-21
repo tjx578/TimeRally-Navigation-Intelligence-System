@@ -156,7 +156,8 @@ class GatewayRoutingProvider:
 class RoutingAdapter:
     """Facade penyatuan provider.
 
-    Default urutan provider: ROUTING_DEFAULT_PROVIDER lalu mock fallback.
+    Provider eksplisit tetap dipakai apa adanya. Provider `auto` memakai urutan
+    environment sehingga race day bisa hot-swap OSRM/Valhalla/GraphHopper.
     """
 
     def __init__(
@@ -166,8 +167,59 @@ class RoutingAdapter:
         provider_list = list(providers) if providers else [MockRoutingProvider()]
         self._providers = {p.name: p for p in provider_list}
 
+    def _provider_priority(self) -> list[str]:
+        settings = get_settings()
+        raw_priority = [
+            settings.routing_provider_primary,
+            settings.routing_provider_fallback,
+            settings.routing_provider_standby,
+            settings.routing_default_provider,
+            "osrm",
+            "valhalla",
+            "graphhopper",
+            "google",
+        ]
+        if settings.routing_allow_mock_fallback:
+            raw_priority.append("mock")
+
+        priority: list[str] = []
+        for item in raw_priority:
+            name = (item or "").strip().lower()
+            if name in {"", "auto", "primary"}:
+                continue
+            if name in self._providers and name not in priority:
+                priority.append(name)
+        return priority
+
+    @staticmethod
+    def _is_success(result: ProviderResult) -> bool:
+        return bool(result.segments)
+
+    def _route_auto(self, request: RouteRequest) -> ProviderResult:
+        warnings: list[str] = []
+        last_result: ProviderResult | None = None
+        for provider_name in self._provider_priority():
+            provider = self._providers[provider_name]
+            result = provider.route(request)
+            last_result = result
+            if self._is_success(result):
+                if warnings:
+                    result.warnings = [*warnings, *result.warnings]
+                return result
+            warnings.extend(f"{provider_name}: {warning}" for warning in result.warnings)
+
+        if last_result is not None:
+            last_result.warnings = warnings or last_result.warnings
+            return last_result
+        provider = self._providers.get("mock")
+        if provider is None:
+            raise RuntimeError("Tidak ada provider routing yang terdaftar")
+        return provider.route(request)
+
     def route(self, request: RouteRequest) -> ProviderResult:
         provider_name = request.provider
+        if provider_name in {"", "auto", "primary"}:
+            return self._route_auto(request)
         provider = self._providers.get(provider_name) or self._providers.get("mock")
         if provider is None:
             raise RuntimeError("Tidak ada provider routing yang terdaftar")

@@ -5,6 +5,7 @@ Membungkus Traccar / live GPS in-memory store dengan API rally:
 - GET  /v1/tracking/state/{device_id}: state terkini.
 - POST /v1/tracking/replay: hitung deviasi terhadap route GPX/GeoJSON.
 - GET  /v1/tracking/checkpoints/{event_id}: status checkpoint.
+- GET  /health, /healthz, /readyz.
 """
 
 from __future__ import annotations
@@ -57,6 +58,24 @@ class IngestPoint(BaseModel):
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok", "devices": list(_DEVICES.keys())}
+
+
+@app.get("/healthz")
+def healthz() -> dict:
+    return health()
+
+
+@app.get("/readyz")
+def ready() -> dict:
+    buffered_points = sum(len(state.points) for state in _DEVICES.values())
+    return {
+        "status": "ready",
+        "checks": {
+            "device_count": len(_DEVICES),
+            "buffered_points": buffered_points,
+            "max_points_per_device": 2048,
+        },
+    }
 
 
 @app.post("/v1/tracking/ingest")
