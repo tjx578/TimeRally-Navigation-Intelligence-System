@@ -1,0 +1,66 @@
+## Dynamic Traefik middlewares.
+##
+## - rally-secure-headers: hardening header standar (HSTS, X-Frame-Options, Referrer-Policy).
+## - rally-dashboard-auth: basic-auth untuk dashboard Traefik. Ganti USERS_FILE
+##   via env atau letakkan htpasswd di /etc/traefik/dynamic/users.htpasswd.
+## - rally-api-ratelimit: rate limit per-IP untuk endpoint API publik.
+## - rally-cors-app: CORS allowlist khusus traffic dari host `app.*`.
+
+http:
+  middlewares:
+    rally-secure-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        frameDeny: true
+        permissionsPolicy: "camera=(), microphone=(), geolocation=(self)"
+        customResponseHeaders:
+          X-Robots-Tag: "noindex, nofollow"
+
+    rally-dashboard-auth:
+      basicAuth:
+        usersFile: /etc/traefik/dynamic/users.htpasswd
+
+    rally-api-ratelimit:
+      rateLimit:
+        average: 200
+        period: 1m
+        burst: 50
+        sourceCriterion:
+          ipStrategy:
+            depth: 1
+
+    rally-cors-app:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        accessControlAllowOriginList:
+          - "https://app.example.com"
+        accessControlAllowHeaders:
+          - "Authorization"
+          - "Content-Type"
+          - "X-Requested-With"
+        accessControlMaxAge: 600
+        addVaryHeader: true
+
+  routers:
+    traefik-dashboard:
+      rule: "Host(`traefik.example.com`)"
+      entryPoints:
+        - websecure
+      service: "api@internal"
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - rally-dashboard-auth
+        - rally-secure-headers
