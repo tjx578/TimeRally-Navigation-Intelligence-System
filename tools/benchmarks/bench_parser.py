@@ -14,9 +14,7 @@ from pathlib import Path
 from statistics import mean
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "packages" / "rally_core"))
-sys.path.insert(0, str(ROOT / "packages" / "geo_engine"))
-sys.path.insert(0, str(ROOT / "packages" / "knowledge_engine"))
+sys.path.insert(0, str(ROOT / "packages"))
 
 from rally_core import RallyParser  # noqa: E402
 

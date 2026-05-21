@@ -13,7 +13,6 @@ Memeriksa:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from math import hypot
 
 from rally_core.constraints.types import ConstraintCheck, ConstraintStatus
 

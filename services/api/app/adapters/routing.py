@@ -12,6 +12,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
+import httpx
+
+from app.settings import get_settings
 from geo_engine.distance import haversine_meters
 
 from rally_core.routing.models import (
@@ -79,13 +82,87 @@ class MockRoutingProvider:
         )
 
 
+@dataclass
+class GatewayRoutingProvider:
+    """Forward provider nyata ke service routing-gateway."""
+
+    name: Provider
+    base_url: str | None = None
+    timeout_s: float = 20.0
+
+    def _base_url(self) -> str:
+        return (self.base_url or get_settings().routing_gateway_url).rstrip("/")
+
+    def route(self, request: RouteRequest) -> ProviderResult:
+        payload = {
+            "provider": self.name,
+            "route": {
+                "profile": request.profile,
+                "allow_reorder": request.allow_reorder,
+                "avoid": request.avoid,
+                "waypoints": [
+                    {
+                        "id": wp.id,
+                        "name": wp.name,
+                        "coord": {"lat": wp.coord.lat, "lng": wp.coord.lng},
+                    }
+                    for wp in request.waypoints
+                ],
+            },
+        }
+        try:
+            with httpx.Client(timeout=self.timeout_s) as client:
+                response = client.post(f"{self._base_url()}/v1/routing/route", json=payload)
+                response.raise_for_status()
+                data = response.json()
+        except Exception as exc:  # noqa: BLE001
+            return ProviderResult(
+                provider=self.name,
+                segments=[],
+                total_distance_m=0,
+                total_duration_s=0,
+                confidence=0.0,
+                warnings=[f"routing_gateway_unreachable:{exc}"],
+            )
+
+        segments: list[RouteSegment] = []
+        for segment in data.get("segments", []):
+            polyline = [
+                LatLng(lat=float(pt["lat"]), lng=float(pt["lng"]))
+                for pt in segment.get("polyline", [])
+                if "lat" in pt and "lng" in pt
+            ]
+            segments.append(
+                RouteSegment(
+                    from_waypoint=segment["from_waypoint"],
+                    to_waypoint=segment["to_waypoint"],
+                    distance_m=int(segment.get("distance_m", 0)),
+                    duration_s=int(segment.get("duration_s", 0)),
+                    polyline=polyline,
+                    provider=self.name,
+                    status=segment.get("status", "ok"),
+                )
+            )
+        return ProviderResult(
+            provider=self.name,
+            segments=segments,
+            total_distance_m=int(data.get("total_distance_m", 0)),
+            total_duration_s=int(data.get("total_duration_s", 0)),
+            confidence=float(data.get("confidence", 1.0)),
+            warnings=list(data.get("warnings", [])),
+        )
+
+
 class RoutingAdapter:
     """Facade penyatuan provider.
 
     Default urutan provider: ROUTING_DEFAULT_PROVIDER lalu mock fallback.
     """
 
-    def __init__(self, providers: Iterable[MockRoutingProvider] | None = None) -> None:
+    def __init__(
+        self,
+        providers: Iterable[MockRoutingProvider | GatewayRoutingProvider] | None = None,
+    ) -> None:
         provider_list = list(providers) if providers else [MockRoutingProvider()]
         self._providers = {p.name: p for p in provider_list}
 

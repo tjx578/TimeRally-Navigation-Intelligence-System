@@ -11,7 +11,6 @@ import os
 import httpx
 
 from .base import (
-    LatLngModel,
     RouteRequestModel,
     RouteResultModel,
     RouteSegmentModel,

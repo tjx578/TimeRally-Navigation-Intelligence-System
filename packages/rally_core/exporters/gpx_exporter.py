@@ -9,7 +9,6 @@ from rally_core.routing.models import RouteSegment, RouteWaypoint
 
 
 GPX_NS = "http://www.topografix.com/GPX/1/1"
-ET.register_namespace("", GPX_NS)
 
 
 def export_gpx(
@@ -19,33 +18,34 @@ def export_gpx(
     creator: str = "TimeRallyNavigator/0.1",
 ) -> str:
     gpx = ET.Element(
-        f"{{{GPX_NS}}}gpx",
+        "gpx",
         attrib={
+            "xmlns": GPX_NS,
             "version": "1.1",
             "creator": creator,
         },
     )
-    metadata = ET.SubElement(gpx, f"{{{GPX_NS}}}metadata")
-    ET.SubElement(metadata, f"{{{GPX_NS}}}name").text = name
-    ET.SubElement(metadata, f"{{{GPX_NS}}}time").text = datetime.now(timezone.utc).isoformat()
+    metadata = ET.SubElement(gpx, "metadata")
+    ET.SubElement(metadata, "name").text = name
+    ET.SubElement(metadata, "time").text = datetime.now(timezone.utc).isoformat()
 
     for wp in waypoints:
         wpt = ET.SubElement(
             gpx,
-            f"{{{GPX_NS}}}wpt",
+            "wpt",
             attrib={"lat": f"{wp.coord.lat:.6f}", "lon": f"{wp.coord.lng:.6f}"},
         )
-        ET.SubElement(wpt, f"{{{GPX_NS}}}name").text = wp.name
-        ET.SubElement(wpt, f"{{{GPX_NS}}}sym").text = wp.role
+        ET.SubElement(wpt, "name").text = wp.name
+        ET.SubElement(wpt, "sym").text = wp.role
 
-    trk = ET.SubElement(gpx, f"{{{GPX_NS}}}trk")
-    ET.SubElement(trk, f"{{{GPX_NS}}}name").text = name
-    trkseg = ET.SubElement(trk, f"{{{GPX_NS}}}trkseg")
+    trk = ET.SubElement(gpx, "trk")
+    ET.SubElement(trk, "name").text = name
+    trkseg = ET.SubElement(trk, "trkseg")
     for seg in segments:
         for pt in seg.polyline:
             ET.SubElement(
                 trkseg,
-                f"{{{GPX_NS}}}trkpt",
+                "trkpt",
                 attrib={"lat": f"{pt.lat:.6f}", "lon": f"{pt.lng:.6f}"},
             )
 

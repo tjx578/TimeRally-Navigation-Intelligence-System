@@ -17,6 +17,7 @@ class Settings:
     database_url: str | None = None
     redis_url: str | None = None
     routing_default_provider: str = "valhalla"
+    routing_gateway_url: str = "http://routing-gateway:8010"
     valhalla_url: str = "http://localhost:8002"
     osrm_url: str = "http://localhost:5000"
     graphhopper_url: str = "http://localhost:8989"
@@ -28,12 +29,19 @@ class Settings:
     data_root: str = "data"
     exports_root: str = "exports"
     knowledge_root: str = "data/curated"
+    cors_origins: tuple[str, ...] = ("http://localhost:5173", "http://127.0.0.1:5173")
 
 
 def _to_bool(value: str | None, default: bool = False) -> bool:
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _to_csv_tuple(value: str | None, default: tuple[str, ...]) -> tuple[str, ...]:
+    if not value:
+        return default
+    return tuple(item.strip() for item in value.split(",") if item.strip())
 
 
 @lru_cache(maxsize=1)
@@ -43,6 +51,7 @@ def get_settings() -> Settings:
         database_url=os.getenv("DATABASE_URL"),
         redis_url=os.getenv("REDIS_URL"),
         routing_default_provider=os.getenv("ROUTING_DEFAULT_PROVIDER", "valhalla"),
+        routing_gateway_url=os.getenv("ROUTING_GATEWAY_URL", "http://routing-gateway:8010"),
         valhalla_url=os.getenv("VALHALLA_URL", "http://localhost:8002"),
         osrm_url=os.getenv("OSRM_URL", "http://localhost:5000"),
         graphhopper_url=os.getenv("GRAPHHOPPER_URL", "http://localhost:8989"),
@@ -54,4 +63,8 @@ def get_settings() -> Settings:
         data_root=os.getenv("DATA_ROOT", "data"),
         exports_root=os.getenv("EXPORTS_ROOT", "exports"),
         knowledge_root=os.getenv("KNOWLEDGE_ROOT", "data/curated"),
+        cors_origins=_to_csv_tuple(
+            os.getenv("API_CORS_ORIGINS"),
+            ("http://localhost:5173", "http://127.0.0.1:5173"),
+        ),
     )

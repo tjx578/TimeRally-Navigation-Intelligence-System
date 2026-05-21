@@ -1,5 +1,6 @@
 import { Camera, FileImage, ScanText } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { submitPhotos } from "../../features/photo-ocr-intake";
 import { useRallyWorkspaceStore } from "../../lib/state/rallyWorkspaceStore";
 
 type LocalPhoto = {
@@ -10,21 +11,44 @@ type LocalPhoto = {
 export function QuestionPhotoIntakePanel() {
   const photoOcr = useRallyWorkspaceStore((state) => state.photoOcr);
   const processQuestionPhotos = useRallyWorkspaceStore((state) => state.processQuestionPhotos);
+  const setPhotoOcrResult = useRallyWorkspaceStore((state) => state.setPhotoOcrResult);
   const uploadRef = useRef<HTMLInputElement | null>(null);
   const cameraRef = useRef<HTMLInputElement | null>(null);
   const [localPhotos, setLocalPhotos] = useState<LocalPhoto[]>([]);
 
-  function handleFiles(files: FileList | null) {
+  useEffect(() => {
+    return () => {
+      localPhotos.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
+    };
+  }, [localPhotos]);
+
+  async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) {
       return;
     }
 
-    const photos = Array.from(files).map((file) => ({
+    const selectedFiles = Array.from(files);
+    const photos = selectedFiles.map((file) => ({
       fileName: file.name,
       previewUrl: URL.createObjectURL(file)
     }));
     setLocalPhotos(photos);
     processQuestionPhotos(photos);
+
+    try {
+      const result = await submitPhotos(selectedFiles);
+      setPhotoOcrResult(result);
+    } catch (error) {
+      setPhotoOcrResult({
+        event_name: "",
+        trayek_name: "",
+        location: "",
+        normalized_text: "",
+        photo_count: selectedFiles.length,
+        status: "failed",
+        warnings: [error instanceof Error ? error.message : "OCR upload failed"]
+      });
+    }
   }
 
   return (

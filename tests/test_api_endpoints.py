@@ -75,8 +75,29 @@ def test_export_endpoint_returns_artifacts():
     assert client is not None
     resp = client.post(
         "/v1/export/artifacts",
-        json={"event_id": "evt-1", "formats": ["yaml", "gpx", "kml"]},
+        json={
+            "event_id": "evt-1",
+            "event_name": "Demo Event",
+            "formats": ["yaml", "gpx", "kml"],
+            "waypoints": [
+                {"id": "w1", "name": "Start", "coordinate": {"lat": -8.67, "lng": 115.22}},
+                {"id": "w2", "name": "Finish", "coordinate": {"lat": -8.68, "lng": 115.23}},
+            ],
+            "segments": [
+                {
+                    "from_waypoint": "w1",
+                    "to_waypoint": "w2",
+                    "distance_m": 1200,
+                    "duration_s": 180,
+                    "polyline": [
+                        {"lat": -8.67, "lng": 115.22},
+                        {"lat": -8.68, "lng": 115.23},
+                    ],
+                }
+            ],
+        },
     )
     assert resp.status_code == 200
     body = resp.json()
     assert len(body["artifacts"]) == 3
+    assert all(a["status"] == "generated" for a in body["artifacts"])

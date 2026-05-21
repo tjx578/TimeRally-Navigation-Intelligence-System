@@ -22,11 +22,24 @@ router = APIRouter()
 def _build_candidate_pool(request: InferMissingWaypointRequest) -> list[CandidatePlace]:
     """Bangun candidate pool dari knowledge index lokal.
 
-    Untuk dev/test, kita memakai 3 placeholder candidate di sekitar previous/next
-    waypoint. Production harus mengirim kandidat dari place-resolver lewat
-    request body atau API call internal.
+    Production caller mengirim kandidat dari place-resolver, marshal lapangan,
+    KMPAL, atau hasil review manual. Endpoint tidak lagi membuat placeholder
+    koordinat karena itu berbahaya untuk field test.
     """
-    return []
+    return [
+        CandidatePlace(
+            id=candidate.id,
+            name=candidate.name,
+            lat=candidate.coordinate.lat,
+            lng=candidate.coordinate.lng,
+            landmark_type=candidate.landmark_type,
+            source=candidate.source,
+            route_corridor_fit=candidate.route_corridor_fit,
+            turn_geometry_fit=candidate.turn_geometry_fit,
+            name_context_match=candidate.name_context_match,
+        )
+        for candidate in request.candidates
+    ]
 
 
 @router.post("/infer-missing-waypoint", response_model=InferMissingWaypointResponse)
@@ -41,24 +54,31 @@ def infer_missing_waypoint_endpoint(
             candidates=[],
             status="empty_pool: kirim kandidat dari place-resolver atau marshal hint",
         )
+    if request.context.previous_coordinate is None or request.context.next_coordinate is None:
+        return InferMissingWaypointResponse(
+            missing_waypoint_text=request.context.missing_waypoint_text,
+            recommended_candidate_id=None,
+            candidates=[],
+            status="missing_anchor_coordinates: previous_coordinate dan next_coordinate wajib",
+        )
 
     payload = InferMissingInput(
         missing_text=request.context.missing_waypoint_text,
         previous=WaypointAnchor(
             id=request.context.previous_waypoint_id,
-            lat=0.0,
-            lng=0.0,
+            lat=request.context.previous_coordinate.lat,
+            lng=request.context.previous_coordinate.lng,
         ),
         next=WaypointAnchor(
             id=request.context.next_waypoint_id,
-            lat=0.0,
-            lng=0.0,
+            lat=request.context.next_coordinate.lat,
+            lng=request.context.next_coordinate.lng,
         ),
         target_distance_km=request.context.target_distance_km,
         target_time_seconds=request.context.target_time_seconds,
         navigation_action=request.context.navigation_action,
         landmark_type_hint=request.context.landmark_type_hint,
-        text_context="",
+        text_context=request.context.text_context,
         candidates=candidates,
         max_alternatives=request.max_candidates,
     )

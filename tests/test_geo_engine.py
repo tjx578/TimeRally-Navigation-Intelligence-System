@@ -1,5 +1,5 @@
 from geo_engine.corridor import corridor_fit, distance_point_to_line_meters
-from geo_engine.distance import bearing_degrees, haversine_km, haversine_meters
+from geo_engine.distance import bearing_degrees, haversine_km
 from geo_engine.geometry import simplify_polyline
 from geo_engine.turns import classify_turn, turn_angle_degrees
 

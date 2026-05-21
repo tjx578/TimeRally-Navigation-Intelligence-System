@@ -9,9 +9,25 @@ export type ParseRallyRequest = {
 
 export type ParseRallyResponse = {
   event_name: string;
+  trayek_name?: string | null;
+  location?: string | null;
   normalized_text: string;
+  total_distance_km?: number | null;
+  total_time_minutes?: number | null;
   sub_trayek_count: number;
   waypoint_count: number;
+  sub_trayeks: Array<{
+    id: string;
+    label: string;
+    title: string;
+    distance_km?: number | null;
+    duration_minutes?: number | null;
+    speed_mode: string;
+    distance_counted_in_total: boolean;
+    waypoints: Array<{ id: string; raw_text: string; ambiguous: boolean }>;
+  }>;
+  unresolved_tokens: Array<{ token: string; reason: string }>;
+  warnings: string[];
   status: string;
   next_action: string;
 };

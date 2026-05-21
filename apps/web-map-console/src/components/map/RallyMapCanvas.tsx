@@ -1,48 +1,66 @@
-import maplibregl from "maplibre-gl";
-import { useEffect, useRef } from "react";
+import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
+import { useEffect, useRef, useState } from "react";
 import { fallbackCenter } from "../../lib/map/mapStyle";
 import { useRallyWorkspaceStore } from "../../lib/state/rallyWorkspaceStore";
 
 export function RallyMapCanvas() {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const mapModuleRef = useRef<typeof import("maplibre-gl") | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const activeRoute = useRallyWorkspaceStore((state) =>
     state.mappedSubTrayeks.find((route) => route.id === state.execution.activeSubTrayekId)
   );
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) {
-      return;
+    let cancelled = false;
+
+    async function initializeMap() {
+      if (!containerRef.current || mapRef.current) {
+        return;
+      }
+
+      const maplibregl = await import("maplibre-gl");
+      if (cancelled || !containerRef.current || mapRef.current) {
+        return;
+      }
+
+      mapModuleRef.current = maplibregl;
+      mapRef.current = new maplibregl.Map({
+        container: containerRef.current,
+        style: {
+          version: 8,
+          sources: {},
+          layers: [
+            {
+              id: "background",
+              type: "background",
+              paint: { "background-color": "#e5edf6" }
+            }
+          ]
+        },
+        center: [fallbackCenter.lng, fallbackCenter.lat],
+        zoom: fallbackCenter.zoom
+      });
+
+      mapRef.current.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
+      setMapReady(true);
     }
 
-    mapRef.current = new maplibregl.Map({
-      container: containerRef.current,
-      style: {
-        version: 8,
-        sources: {},
-        layers: [
-          {
-            id: "background",
-            type: "background",
-            paint: { "background-color": "#e5edf6" }
-          }
-        ]
-      },
-      center: [fallbackCenter.lng, fallbackCenter.lat],
-      zoom: fallbackCenter.zoom
-    });
-
-    mapRef.current.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
+    void initializeMap();
 
     return () => {
+      cancelled = true;
       mapRef.current?.remove();
       mapRef.current = null;
+      mapModuleRef.current = null;
     };
   }, []);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !activeRoute || activeRoute.geometry.length < 2) {
+    const maplibregl = mapModuleRef.current;
+    if (!map || !maplibregl || !mapReady || !activeRoute || activeRoute.geometry.length < 2) {
       return;
     }
 
@@ -58,9 +76,9 @@ export function RallyMapCanvas() {
           type: "LineString" as const,
           coordinates
         }
-      } as Parameters<maplibregl.GeoJSONSource["setData"]>[0];
+      } as Parameters<GeoJSONSource["setData"]>[0];
 
-      const existingSource = map.getSource("active-subtrayek-route") as maplibregl.GeoJSONSource | undefined;
+      const existingSource = map.getSource("active-subtrayek-route") as GeoJSONSource | undefined;
       if (existingSource) {
         existingSource.setData(routeData);
       } else {
@@ -92,7 +110,7 @@ export function RallyMapCanvas() {
     } else {
       map.once("load", renderRoute);
     }
-  }, [activeRoute]);
+  }, [activeRoute, mapReady]);
 
   return (
     <>

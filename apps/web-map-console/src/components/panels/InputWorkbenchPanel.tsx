@@ -6,15 +6,15 @@ import { useRallyWorkspaceStore } from "../../lib/state/rallyWorkspaceStore";
 export function InputWorkbenchPanel() {
   const rawText = useRallyWorkspaceStore((state) => state.rawText);
   const setRawText = useRallyWorkspaceStore((state) => state.setRawText);
-  const setEventName = useRallyWorkspaceStore((state) => state.setEventName);
+  const applyParsedRally = useRallyWorkspaceStore((state) => state.applyParsedRally);
   const [status, setStatus] = useState("Ready");
 
   async function handleParse() {
     setStatus("Parsing");
     try {
       const result = await rallyApi.parse({ raw_text: rawText });
-      setEventName(result.event_name);
-      setStatus(result.status);
+      applyParsedRally(result);
+      setStatus(result.next_action || result.status);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Parse failed");
     }

@@ -16,19 +16,23 @@ from rally_core.parser.tokenizer import WaypointToken, tokenize_waypoint
 _SUB_DISTANCE_RE = re.compile(r"(\d+(?:[\.,]\d+)?)\s*km", re.IGNORECASE)
 _SUB_DURATION_RE = re.compile(r"(\d{1,3})\s*(?:menit|min|m)\b", re.IGNORECASE)
 _SUB_TITLE_RE = re.compile(r"(?im)^title\s*[:\-]\s*(.+)$")
+_SUB_MODE_RE = re.compile(r"(?im)^(?:mode|kecepatan)\s*[:\-]\s*(.+)$")
 _FIRST_LINE_TITLE = re.compile(r"^(.*?)(?=$|\.)")
 
 
 def _detect_speed_mode(text: str) -> SpeedMode:
+    mode_match = _SUB_MODE_RE.search(text)
+    if mode_match:
+        text = mode_match.group(1)
     upper = text.upper()
-    if "ZERO TRIP" in upper or "LIAISON" in upper:
-        return "liaison_zero_trip"
     if "KEC TETAP DETIK" in upper or "TETAP DETIK" in upper or "FIXED SEC" in upper:
         return "fixed_second"
     if "SISA JARAK" in upper or "REMAINING" in upper:
         return "remaining_distance"
     if "KEC RATA" in upper or "RATA-RATA" in upper or "AVERAGE" in upper:
         return "average_speed"
+    if "ZERO TRIP" in upper or "LIAISON" in upper:
+        return "liaison_zero_trip"
     return "unknown"
 
 

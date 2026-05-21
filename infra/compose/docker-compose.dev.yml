@@ -4,7 +4,10 @@ services:
       context: ../..
       dockerfile: services/api/Dockerfile
     env_file:
-      - ../../.env
+      - path: ../../.env.example
+        required: true
+      - path: ../../.env
+        required: false
     ports:
       - "8000:8000"
     volumes:
@@ -17,7 +20,10 @@ services:
       context: ../..
       dockerfile: services/routing-gateway/Dockerfile
     env_file:
-      - ../../.env
+      - path: ../../.env.example
+        required: true
+      - path: ../../.env
+        required: false
     ports:
       - "8010:8010"
 
@@ -26,7 +32,10 @@ services:
       context: ../..
       dockerfile: services/place-resolver/Dockerfile
     env_file:
-      - ../../.env
+      - path: ../../.env.example
+        required: true
+      - path: ../../.env
+        required: false
     ports:
       - "8011:8011"
     volumes:
@@ -37,6 +46,9 @@ services:
       context: ../..
       dockerfile: services/tracking-gateway/Dockerfile
     env_file:
-      - ../../.env
+      - path: ../../.env.example
+        required: true
+      - path: ../../.env
+        required: false
     ports:
       - "8012:8012"

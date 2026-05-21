@@ -22,7 +22,6 @@ def build_roadbook_table(
     for idx, seg in enumerate(segments, start=1):
         cum_distance += seg.distance_m
         cum_duration += seg.duration_s
-        from_wp = waypoints_by_id.get(seg.from_waypoint)
         to_wp = waypoints_by_id.get(seg.to_waypoint)
         sub_id = (to_wp.id.rsplit("-", 1)[0] if to_wp else seg.to_waypoint)
         instruction = " | ".join(t.text for t in seg.turn_instructions) or "Lanjutkan"

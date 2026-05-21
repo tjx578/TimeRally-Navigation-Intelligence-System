@@ -13,9 +13,7 @@ from pathlib import Path
 
 # Setup PYTHONPATH agar bisa dijalankan dari root repo.
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "packages" / "rally_core"))
-sys.path.insert(0, str(ROOT / "packages" / "geo_engine"))
-sys.path.insert(0, str(ROOT / "packages" / "knowledge_engine"))
+sys.path.insert(0, str(ROOT / "packages"))
 
 from rally_core.constraints.engine import (  # noqa: E402
     ConstraintEngine,

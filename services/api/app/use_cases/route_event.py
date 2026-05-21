@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from app.adapters.routing import MockRoutingProvider, RoutingAdapter
+from app.adapters.routing import GatewayRoutingProvider, MockRoutingProvider, RoutingAdapter
 from rally_core.routing.models import (
-    LatLng,
     ProviderResult,
     Provider,
     RouteRequest,
@@ -12,7 +11,15 @@ from rally_core.routing.models import (
 )
 
 
-_adapter = RoutingAdapter([MockRoutingProvider(name="mock"), MockRoutingProvider(name="valhalla"), MockRoutingProvider(name="osrm")])
+_adapter = RoutingAdapter(
+    [
+        GatewayRoutingProvider(name="valhalla"),
+        GatewayRoutingProvider(name="osrm"),
+        GatewayRoutingProvider(name="graphhopper"),
+        GatewayRoutingProvider(name="google"),
+        MockRoutingProvider(name="mock"),
+    ]
+)
 
 
 def route_event(

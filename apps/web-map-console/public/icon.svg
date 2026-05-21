@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Time Rally</title>
+  <rect width="512" height="512" rx="96" fill="#111827"/>
+  <path d="M140 352c38-94 91-152 159-174 45-15 83-11 105-4-21 8-48 23-74 49-36 36-54 80-65 129H140Z" fill="#14b8a6"/>
+  <path d="M109 387h294" stroke="#f8fafc" stroke-width="28" stroke-linecap="round"/>
+  <path d="M156 246h104" stroke="#f8fafc" stroke-width="24" stroke-linecap="round"/>
+  <path d="M256 112a144 144 0 1 1-102 42" fill="none" stroke="#f8fafc" stroke-width="26" stroke-linecap="round"/>
+  <path d="M256 184v74l58 36" stroke="#f8fafc" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
