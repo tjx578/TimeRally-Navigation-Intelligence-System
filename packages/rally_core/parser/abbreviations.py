@@ -22,11 +22,17 @@ from __future__ import annotations
 # Aksi navigasi
 NAV_ACTIONS: dict[str, str] = {
     "BKN": "belok_kanan",
+    "BKNT": "belok_kanan_tajam",
     "BKR": "belok_kiri",
+    "BKRT": "belok_kiri_tajam",
     "JT": "jalan_terus",
+    "LRS": "lurus",
     "AKN": "ambil_kanan",
     "AKR": "ambil_kiri",
     "BA": "balik_arah",
+    "U": "u_turn",
+    "UJ": "ujung_jalan",
+    "IJU": "ikuti_jalan_utama",
     "TKN": "tikung_kanan",
     "TKR": "tikung_kiri",
 }
@@ -37,17 +43,31 @@ LANDMARK_TYPES: dict[str, str] = {
     "X": "simpang_empat",
     "T": "simpang_tiga",
     "POM": "spbu",
+    "SPBU": "spbu",
+    "JB": "jembatan",
+    "JMB": "jembatan",
     "SDN": "sekolah_dasar",
     "SMP": "sekolah_menengah_pertama",
+    "SMPN": "sekolah_menengah_pertama",
     "SMA": "sekolah_menengah_atas",
+    "SMUN": "sekolah_menengah_atas",
     "SMK": "sekolah_menengah_kejuruan",
     "KC": "kantor_camat",
     "KL": "kantor_lurah",
+    "KKD": "kantor_kepala_desa",
     "JEMB": "jembatan",
     "BPBD": "kantor_bpbd",
     "PASAR": "pasar",
     "PURA": "pura",
     "BANJAR": "banjar",
+    "ZP": "zero_point",
+    "FP": "finish_point",
+    "PAD": "pos_waktu_detik",
+    "PAM": "pos_waktu_menit",
+    "PAR": "pos_rute",
+    "TC": "time_control",
+    "KA": "lintasan_kereta_api",
+    "DKT": "daerah_kecepatan_terbatas",
 }
 
 # Tipe landmark yang case-sensitive (BR vs br)
@@ -66,6 +86,7 @@ LANDMARK_MODIFIERS: dict[str, str] = {
     "ZB": "zebra_cross",
     "ST": "stop",
     "YL": "yield",
+    "H": "hati_hati",
 }
 
 # Mode kecepatan

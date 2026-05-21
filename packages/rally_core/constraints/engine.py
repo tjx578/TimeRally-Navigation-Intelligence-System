@@ -90,6 +90,17 @@ class ConstraintEngine:
             return "warning"
         return "violation"
 
+    def _binding_severity(self, target: float | None, actual: float | None) -> tuple[float | None, str, int]:
+        """Legacy NaviPRO championship severity: <=2% ok, 2-5% warning, >5% reject."""
+        if target is None or actual is None or target == 0:
+            return None, "UNCHECKED", 0
+        deviation_percent = abs(actual - target) / abs(target) * 100
+        if deviation_percent <= 2.0:
+            return round(deviation_percent, 3), "NO_ACTION_REQUIRED", 0
+        if deviation_percent <= 5.0:
+            return round(deviation_percent, 3), "RECALCULATE_AND_REVIEW", 2
+        return round(deviation_percent, 3), "REJECT_SOLUTION_COMPLETELY", 3
+
     # ----- public API -----
 
     def check_total_distance(
@@ -165,6 +176,17 @@ class ConstraintEngine:
             status = self._classify_delta(
                 abs(delta), self.sub_distance_tolerance_km, self.sub_distance_tolerance_km * 4
             )
+            details = self._constraint_details(
+                sub.target_distance_km,
+                sub.calculated_distance_km,
+                "distance",
+            )
+            severity = max(
+                {"compliant": 0, "warning": 1, "violation": 2}.get(status, 0),
+                int(details["championship_severity"]),
+            )
+            if severity >= 3:
+                status = "disqualified"
             checks.append(
                 ConstraintCheck(
                     name=f"sub_distance:{sub.label}",
@@ -178,7 +200,8 @@ class ConstraintEngine:
                         if status != "compliant"
                         else f"Sub {sub.label} jarak sesuai."
                     ),
-                    severity={"compliant": 0, "warning": 1, "violation": 2}.get(status, 0),
+                    severity=severity,
+                    details=details,
                 )
             )
 
@@ -187,6 +210,17 @@ class ConstraintEngine:
             status = self._classify_delta(
                 abs(delta), self.sub_time_tolerance_min, self.sub_time_tolerance_min * 4
             )
+            details = self._constraint_details(
+                sub.target_duration_minutes,
+                sub.calculated_duration_minutes,
+                "time",
+            )
+            severity = max(
+                {"compliant": 0, "warning": 1, "violation": 2}.get(status, 0),
+                int(details["championship_severity"]),
+            )
+            if severity >= 3:
+                status = "disqualified"
             checks.append(
                 ConstraintCheck(
                     name=f"sub_time:{sub.label}",
@@ -200,10 +234,27 @@ class ConstraintEngine:
                         if status != "compliant"
                         else f"Sub {sub.label} waktu sesuai."
                     ),
-                    severity={"compliant": 0, "warning": 1, "violation": 2}.get(status, 0),
+                    severity=severity,
+                    details=details,
                 )
             )
         return checks
+
+    def _constraint_details(
+        self,
+        target: float | None,
+        actual: float | None,
+        constraint_type: str,
+    ) -> dict[str, object]:
+        deviation_percent, action_required, championship_severity = self._binding_severity(target, actual)
+        return {
+            "constraint_type": constraint_type,
+            "deviation_percent": deviation_percent,
+            "championship_tolerance_percent": 2.0,
+            "reject_threshold_percent": 5.0,
+            "action_required": action_required,
+            "championship_severity": championship_severity,
+        }
 
     def check_chaining(self, chains: list[ChainingInput]) -> list[ConstraintCheck]:
         from rally_core.geo import haversine_meters

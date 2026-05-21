@@ -10,7 +10,9 @@ SpeedMode = Literal[
     "liaison_zero_trip",
     "average_speed",
     "fixed_second",
+    "fixed_minute",
     "remaining_distance",
+    "free_time",
     "unknown",
 ]
 

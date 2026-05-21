@@ -1,5 +1,15 @@
 """Championship scoring engine."""
 
-from rally_core.scoring.engine import ChampionshipScorer, ChampionshipScore
+from rally_core.scoring.engine import (
+    ChampionshipPointsInput,
+    ChampionshipPointsScore,
+    ChampionshipScore,
+    ChampionshipScorer,
+)
 
-__all__ = ["ChampionshipScorer", "ChampionshipScore"]
+__all__ = [
+    "ChampionshipPointsInput",
+    "ChampionshipPointsScore",
+    "ChampionshipScorer",
+    "ChampionshipScore",
+]

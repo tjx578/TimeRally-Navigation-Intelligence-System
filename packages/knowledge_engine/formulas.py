@@ -4,8 +4,10 @@ Mendukung 4 mode kecepatan utama:
 
 - average_speed: total_distance / total_time
 - fixed_second: km per second (mode Tetap Detik)
+- fixed_minute: formula jarak/waktu eksplisit mode Tetap Menit
 - remaining_distance: speed dihitung dari sisa jarak ke finish
 - liaison_zero_trip: hanya waktu yang dihitung; jarak tidak dijumlahkan ke total
+- free_time: sub santai/bebas, wajib review manual bila dipakai untuk total
 """
 
 from __future__ import annotations
@@ -13,7 +15,15 @@ from __future__ import annotations
 from typing import Literal
 
 
-SpeedMode = Literal["average_speed", "fixed_second", "remaining_distance", "liaison_zero_trip", "unknown"]
+SpeedMode = Literal[
+    "average_speed",
+    "fixed_second",
+    "fixed_minute",
+    "remaining_distance",
+    "liaison_zero_trip",
+    "free_time",
+    "unknown",
+]
 
 
 def average_speed_kmh(distance_km: float, duration_minutes: float) -> float | None:
@@ -56,7 +66,9 @@ def classify_label(speed_mode: SpeedMode) -> str:
     return {
         "average_speed": "Kecepatan rata-rata",
         "fixed_second": "Kecepatan tetap detik",
+        "fixed_minute": "Kecepatan tetap menit",
         "remaining_distance": "Sisa jarak finish",
         "liaison_zero_trip": "Start / zero trip",
+        "free_time": "Santai / bebas",
         "unknown": "Mode tidak diketahui",
     }[speed_mode]

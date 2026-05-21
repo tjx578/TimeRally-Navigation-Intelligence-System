@@ -16,7 +16,11 @@ from typing import Optional
 import yaml
 
 
-_KMPAL_TOKEN_RE = re.compile(r"^([A-Z]{2,4})\s*(\d+(?:\.\d+)?)$")
+_KMPAL_TOKEN_RE = re.compile(r"^(?:KMPAL|KM)?[\s_-]*([A-Z]{2,5})?\s*(\d+(?:[\.,]\d+)?)$")
+_KMPAL_EXTRACT_RE = re.compile(
+    r"\b(?:KMPAL|KM)[\s_-]*(?:[A-Z]{2,5}[\s_-]*)?\d+(?:[\.,]\d+)?\b"
+    r"|\b[A-Z]{2,5}\s*\d+(?:[\.,]\d+)?(?:\s*/\s*[A-Z]{2,5}\s*\d+(?:[\.,]\d+)?)*\b"
+)
 
 
 @dataclass
@@ -38,15 +42,20 @@ class KMPALDatabase:
     def add(self, point: KMPALPoint) -> None:
         self.points.append(point)
 
-    def find(self, token: str) -> Optional[KMPALPoint]:
+    def find(self, token: str, region: str | None = None) -> Optional[KMPALPoint]:
         match = _KMPAL_TOKEN_RE.match(token.strip().upper())
         if not match:
             return None
-        code, km = match.group(1), float(match.group(2))
-        for p in self.points:
-            if p.code.upper() == code and abs(p.km - km) < 0.05:
-                return p
-        return None
+        code, km = match.group(1), float(match.group(2).replace(",", "."))
+        candidates = [
+            p
+            for p in self.points
+            if abs(p.km - km) < 0.05
+            and (code is None or code in {"KM", "KMPAL"} or p.code.upper() == code)
+            and (region is None or region.lower() in p.region.lower())
+        ]
+        candidates.sort(key=lambda p: (0 if code and p.code.upper() == code else 1, -p.confidence))
+        return candidates[0] if candidates else None
 
     def find_all_code(self, code: str) -> list[KMPALPoint]:
         return [p for p in self.points if p.code.upper() == code.upper()]
@@ -59,6 +68,23 @@ class KMPALDatabase:
             point = self.find(part)
             if point:
                 results.append(point)
+        return results
+
+    def extract_markers(self, text: str, region: str | None = None) -> list[KMPALPoint]:
+        """Ekstrak KMPAL tunggal/compound dari teks soal dan resolve ke database."""
+        seen: set[tuple[str, float]] = set()
+        results: list[KMPALPoint] = []
+        for match in _KMPAL_EXTRACT_RE.finditer(text.upper()):
+            marker = match.group(0)
+            points = self.parse_compound(marker)
+            if not points:
+                point = self.find(marker, region=region)
+                points = [point] if point else []
+            for point in points:
+                key = (point.code.upper(), point.km)
+                if key not in seen:
+                    seen.add(key)
+                    results.append(point)
         return results
 
     @classmethod

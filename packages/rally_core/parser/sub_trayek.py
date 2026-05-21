@@ -13,11 +13,21 @@ from rally_core.parser.models import ParsedWaypoint, SpeedMode, SubTrayek
 from rally_core.parser.tokenizer import WaypointToken, tokenize_waypoint
 
 
-_SUB_DISTANCE_RE = re.compile(r"(\d+(?:[\.,]\d+)?)\s*km", re.IGNORECASE)
-_SUB_DURATION_RE = re.compile(r"(\d{1,3})\s*(?:menit|min|m)\b", re.IGNORECASE)
+_SUB_DISTANCE_RE = re.compile(r"(\d+(?:[\.,]\d+)?)\s*km(?!\s*/?\s*jam)", re.IGNORECASE)
+_EXPLICIT_DISTANCE_RE = re.compile(
+    r"(?im)(?:jarak|distance|sejauh)\s*(?:[:=\-]\s*)?\*{0,2}\s*(\d+(?:[\.,]\d+)?)\s*km(?!\s*/?\s*jam)"
+)
+_DISTANCE_UNDEFINED_RE = re.compile(
+    r"(?im)jarak\s*(?:[:=\-]\s*)?\*{0,2}\s*(?:tidak\s+ditentukan|n/?a|berbasis\s+waktu)"
+)
+_SUB_DURATION_RE = re.compile(r"(\d{1,3}(?:[\.,]\d+)?)\s*(?:menit|min|m)\b", re.IGNORECASE)
+_EXPLICIT_DURATION_RE = re.compile(
+    r"(?im)(?:waktu|durasi|selama|time)\s*(?:[:=\-]\s*)?\*{0,2}\s*(\d{1,3}(?:[\.,]\d+)?)\s*(?:menit|min|m)\b"
+)
 _SUB_TITLE_RE = re.compile(r"(?im)^title\s*[:\-]\s*(.+)$")
-_SUB_MODE_RE = re.compile(r"(?im)^(?:mode|kecepatan)\s*[:\-]\s*(.+)$")
+_SUB_MODE_RE = re.compile(r"(?im)^(?:[*\-\s]*\*{0,2})?(?:mode|mode\s+kecepatan|kecepatan)\s*[:\-]\s*(.+)$")
 _FIRST_LINE_TITLE = re.compile(r"^(.*?)(?=$|\.)")
+_WAYPOINT_PREFIX_RE = re.compile(r"^\s*(?:[-*]\s*)?(?:\d+[\.)]\s*)?")
 
 
 def _detect_speed_mode(text: str) -> SpeedMode:
@@ -27,13 +37,25 @@ def _detect_speed_mode(text: str) -> SpeedMode:
     upper = text.upper()
     if "KEC TETAP DETIK" in upper or "TETAP DETIK" in upper or "FIXED SEC" in upper:
         return "fixed_second"
+    if "KEC TETAP MENIT" in upper or "TETAP MENIT" in upper or "FIXED MIN" in upper:
+        return "fixed_minute"
     if "SISA JARAK" in upper or "REMAINING" in upper:
         return "remaining_distance"
     if "KEC RATA" in upper or "RATA-RATA" in upper or "AVERAGE" in upper:
         return "average_speed"
     if "ZERO TRIP" in upper or "LIAISON" in upper:
         return "liaison_zero_trip"
+    if "SANTAI" in upper or "BEBAS" in upper:
+        return "free_time"
     return "unknown"
+
+
+def _clean_metadata_line(line: str) -> str:
+    return line.strip().strip("-* ").replace("**", "").strip()
+
+
+def _clean_waypoint_line(line: str) -> str:
+    return _WAYPOINT_PREFIX_RE.sub("", line).strip()
 
 
 def _build_waypoint(
@@ -99,22 +121,25 @@ def parse_sub_trayek_block(label: str, body: str, order: int) -> SubTrayek:
     if title_match:
         sub.title = title_match.group(1).strip()
 
-    dist_match = _SUB_DISTANCE_RE.search(body)
-    if dist_match:
+    dist_match = _EXPLICIT_DISTANCE_RE.search(body) or _SUB_DISTANCE_RE.search(body)
+    if _DISTANCE_UNDEFINED_RE.search(body):
+        sub.distance_km = None
+        sub.distance_counted_in_total = False
+    elif dist_match:
         sub.distance_km = float(dist_match.group(1).replace(",", "."))
 
-    dur_match = _SUB_DURATION_RE.search(body)
+    dur_match = _EXPLICIT_DURATION_RE.search(body) or _SUB_DURATION_RE.search(body)
     if dur_match:
-        sub.duration_minutes = float(dur_match.group(1))
+        sub.duration_minutes = float(dur_match.group(1).replace(",", "."))
 
     sub.speed_mode = _detect_speed_mode(body)
-    if sub.speed_mode == "liaison_zero_trip":
+    if sub.speed_mode == "liaison_zero_trip" or sub.distance_km is None:
         sub.distance_counted_in_total = False
 
     if not sub.title:
         # Title fallback: ambil baris pertama yang bukan header metadata.
         for raw in body.splitlines():
-            line = raw.strip()
+            line = _clean_metadata_line(raw)
             if not line:
                 continue
             if _SUB_DISTANCE_RE.search(line) and len(line) < 40:
@@ -127,14 +152,19 @@ def parse_sub_trayek_block(label: str, body: str, order: int) -> SubTrayek:
     # Parse waypoint lines: skip baris metadata (dist/dur/speed mode/title).
     wp_order = 0
     for raw in body.splitlines():
-        line = raw.strip()
+        line = _clean_metadata_line(raw)
         if not line:
             continue
         if _SUB_DISTANCE_RE.fullmatch(line):
             continue
         if _SUB_DURATION_RE.fullmatch(line):
             continue
-        if line.lower().startswith(("title", "jarak", "waktu", "mode", "kecepatan")):
+        if line.lower().startswith(
+            ("title", "jarak", "waktu", "durasi", "mode", "mode kecepatan", "kecepatan", "titik navigasi")
+        ):
+            continue
+        line = _clean_waypoint_line(line)
+        if not line:
             continue
         wp_order += 1
         wp = _build_waypoint(sub_id, wp_order, line)

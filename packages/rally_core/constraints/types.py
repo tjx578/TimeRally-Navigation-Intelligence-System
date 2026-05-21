@@ -19,4 +19,4 @@ class ConstraintCheck:
     unit: str | None = None
     message: str = ""
     severity: int = 0  # 0 ok, 1 warning, 2 violation, 3 disqualified
-    details: dict[str, float] = field(default_factory=dict)
+    details: dict[str, object] = field(default_factory=dict)

@@ -63,6 +63,10 @@ def normalize_rally_text(raw: str) -> str:
     return text.strip()
 
 
+def _clean_sub_header_tail(value: str) -> str:
+    return value.strip().strip("*").strip().strip(":.-")
+
+
 def split_sub_trayek_blocks(text: str) -> list[tuple[str, str]]:
     """Memecah teks menjadi list (label, body) per Sub.
 
@@ -70,20 +74,29 @@ def split_sub_trayek_blocks(text: str) -> list[tuple[str, str]]:
         SUB A: ...
         Sub B - ...
         SUB-C ...
+        A. ...
+        ### **A. ...**
+        Segmen A ...
     """
-    pattern = re.compile(r"(?im)^\s*sub[\s\-]*([A-Z])\b[\s:.\-]*(.*)$")
+    patterns = [
+        re.compile(
+            r"(?i)^\s*(?:#{1,6}\s*)?\*{0,2}(?:sub[\s\-]*trayek|sub|segmen)"
+            r"\s*([A-Z])\b[\s:.\-)]*(.*?)\*{0,2}\s*$"
+        ),
+        re.compile(r"(?i)^\s*(?:#{1,6}\s*)?\*{0,2}([A-Z])[\.)]\s+(.+?)\*{0,2}\s*$"),
+    ]
     blocks: list[tuple[str, str]] = []
     current_label: str | None = None
     current_lines: list[str] = []
 
     for line in text.splitlines():
-        match = pattern.match(line)
+        match = next((m for pattern in patterns if (m := pattern.match(line))), None)
         if match:
             if current_label is not None:
                 blocks.append((current_label, "\n".join(current_lines).strip()))
             current_label = match.group(1).upper()
-            tail = match.group(2).strip()
-            current_lines = [tail] if tail else []
+            tail = _clean_sub_header_tail(match.group(2))
+            current_lines = [f"Title: {tail}"] if tail else []
         else:
             if current_label is not None:
                 current_lines.append(line)

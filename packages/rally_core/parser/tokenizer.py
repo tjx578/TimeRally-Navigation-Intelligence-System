@@ -16,7 +16,26 @@ from rally_core.parser import abbreviations as ab
 
 
 _TOKEN_RE = re.compile(r"[A-Za-z]+(?:\.[A-Za-z]+)*|\d+(?:[\.,]\d+)?|[A-Za-z]+\d+|[^\s]")
-_KMPAL_PART = re.compile(r"^[A-Z]{2,4}\s*\d+(?:[\.,]\d+)?$")
+_KMPAL_PART = re.compile(r"^[A-Z]{2,5}\s*\d+(?:[\.,]\d+)?$")
+
+
+def _is_number_token(token: str) -> bool:
+    return token.replace(",", ".").replace(".", "").isdigit()
+
+
+def _looks_like_kmpal_pair(code: str, number: str) -> bool:
+    upper = code.upper()
+    if not _is_number_token(number):
+        return False
+    if upper in {"KM", "KMPAL"}:
+        return True
+    if not (2 <= len(upper) <= 4 and upper.isalpha()):
+        return False
+    if ab.is_nav_action(code) or ab.normalize_landmark_type(code) or ab.is_landmark_modifier(code):
+        return False
+    if code in ab.CASE_SENSITIVE_TOKENS:
+        return False
+    return True
 
 
 @dataclass
@@ -68,10 +87,21 @@ def tokenize_waypoint(line: str) -> list[WaypointToken]:
         tokens.extend(tokenize_waypoint(after))
         return tokens
 
-    for raw in _TOKEN_RE.findall(line):
+    raw_tokens = _TOKEN_RE.findall(line)
+    index = 0
+    while index < len(raw_tokens):
+        raw = raw_tokens[index]
+        next_raw = raw_tokens[index + 1] if index + 1 < len(raw_tokens) else None
+        if next_raw is not None and _looks_like_kmpal_pair(raw, next_raw):
+            marker = f"{raw.upper()} {next_raw.replace(',', '.')}"
+            tokens.append(WaypointToken(text=marker, kind="kmpal", value=marker))
+            index += 2
+            continue
         if raw in {",", ";", ":"}:
             tokens.append(WaypointToken(text=raw, kind="separator"))
+            index += 1
             continue
         kind, value = _classify(raw)
         tokens.append(WaypointToken(text=raw, kind=kind, value=value))
+        index += 1
     return tokens
