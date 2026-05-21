@@ -236,6 +236,10 @@ select {
   white-space: nowrap;
 }
 
+.time-is-widget-anchor {
+  display: none !important;
+}
+
 .time-input-row input {
   min-width: 0;
   border: 1px solid #cbd5e1;

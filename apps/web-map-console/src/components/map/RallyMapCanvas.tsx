@@ -1,6 +1,7 @@
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { fallbackCenter } from "../../lib/map/mapStyle";
+import { buildOfflineStyle, installPmtilesProtocol } from "../../lib/pmtiles";
 import { useRallyWorkspaceStore } from "../../lib/state/rallyWorkspaceStore";
 
 export function RallyMapCanvas() {
@@ -26,19 +27,10 @@ export function RallyMapCanvas() {
       }
 
       mapModuleRef.current = maplibregl;
+      const pmtilesEnabled = installPmtilesProtocol(maplibregl);
       mapRef.current = new maplibregl.Map({
         container: containerRef.current,
-        style: {
-          version: 8,
-          sources: {},
-          layers: [
-            {
-              id: "background",
-              type: "background",
-              paint: { "background-color": "#e5edf6" }
-            }
-          ]
-        },
+        style: buildOfflineStyle(pmtilesEnabled),
         center: [fallbackCenter.lng, fallbackCenter.lat],
         zoom: fallbackCenter.zoom
       });

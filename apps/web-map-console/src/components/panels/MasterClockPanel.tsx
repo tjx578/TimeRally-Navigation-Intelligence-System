@@ -27,6 +27,17 @@ function parseTimeIsSeconds(value: string | null) {
   return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
 }
 
+function extractTimeText(value: string) {
+  let decoded = value;
+  try {
+    decoded = value.includes("%") ? decodeURIComponent(value) : value;
+  } catch {
+    decoded = value;
+  }
+  const match = decoded.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
+  return match?.[0] ?? null;
+}
+
 function formatClock(date: Date) {
   return date.toLocaleTimeString("id-ID", {
     hour: "2-digit",
@@ -68,8 +79,14 @@ export function MasterClockPanel() {
 
   useEffect(() => {
     window.__timeRallyTimeIsCallback = (renderedTime: string) => {
-      setTimeIsText(renderedTime);
-      setTimeAuthorityStatus("Time.is synced");
+      const sanitizedTime = extractTimeText(renderedTime);
+      if (sanitizedTime) {
+        setTimeIsText(sanitizedTime);
+        setTimeAuthorityStatus("Time.is synced");
+      } else {
+        setTimeIsText(null);
+        setTimeAuthorityStatus("Fallback device clock");
+      }
     };
 
     const initWidget = () => {
@@ -171,7 +188,8 @@ export function MasterClockPanel() {
         <a href="https://time.is/Bali" id="time_is_link" rel="nofollow">
           Time.is Bali
         </a>
-        <span id="Bali_z41b">{timeIsText ?? "--:--:--"}</span>
+        <span>{timeIsText ?? formatClock(now)}</span>
+        <span id="Bali_z41b" className="time-is-widget-anchor" aria-hidden="true" />
         <small>{timeAuthorityStatus}</small>
       </div>
 
