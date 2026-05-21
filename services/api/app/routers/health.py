@@ -39,7 +39,9 @@ def ready() -> dict:
         "cors_configured": bool(settings.cors_origins),
         "routing_gateway_url": settings.routing_gateway_url,
         "exports_root_parent_exists": exports_root.parent.exists(),
+        "exports_root_gcs": settings.exports_root.startswith("gs://"),
         "knowledge_root_exists": knowledge_root.exists(),
     }
-    status = "ready" if checks["cors_configured"] and checks["exports_root_parent_exists"] else "degraded"
+    exports_ready = checks["exports_root_gcs"] or checks["exports_root_parent_exists"]
+    status = "ready" if checks["cors_configured"] and exports_ready else "degraded"
     return {"status": status, "service": "api", "checks": checks}
