@@ -28,6 +28,8 @@ sudah ada di `infra/compose/docker-compose.prod.yml` — pilih satu sebagai targ
 | `secrets_load.sh`     | Sync secret lokal `.env.gcp` ke Secret Manager. |
 | `cloudbuild.yaml`     | Cloud Build definition untuk semua image production. |
 | `routing-vm-compose.yml` | Compose stack khusus VM routing GCP. |
+| `redeploy_web.sh`     | Force-redeploy `timerally-web` dengan TAG timestamp unik; tulis ulang `.env.production`. Lihat `ops/runbooks/cloud_run_web_redeploy.md`. |
+| `check_web_deploy.sh` | Diagnose revision aktif, `/maps/bali-style.json`, asset JS, marker env, `/v1/healthz`. Exit 0 = hijau. |
 
 ## Quick start
 
