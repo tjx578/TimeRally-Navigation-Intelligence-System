@@ -1,0 +1,56 @@
+substitutions:
+  _REGION: asia-southeast2
+  _REPOSITORY: timerally
+  _IMAGE_TAG: manual
+  _VITE_API_BASE_URL: ""
+  _VITE_ROUTING_PUBLIC_BASE: ""
+  _VITE_PMTILES_URL: ""
+  _VITE_SUPABASE_URL: ""
+  _VITE_SUPABASE_ANON_KEY: ""
+  _VITE_SENTRY_DSN: ""
+
+steps:
+  - id: build-api
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "services/api/Dockerfile", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/api:${_IMAGE_TAG}", "."]
+  - id: build-routing-gateway
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "services/routing-gateway/Dockerfile", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/routing-gateway:${_IMAGE_TAG}", "."]
+  - id: build-place-resolver
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "services/place-resolver/Dockerfile", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/place-resolver:${_IMAGE_TAG}", "."]
+  - id: build-tracking-gateway
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "services/tracking-gateway/Dockerfile", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/tracking-gateway:${_IMAGE_TAG}", "."]
+  - id: build-ocr-worker
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "workers/ocr/Dockerfile", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/ocr-worker:${_IMAGE_TAG}", "."]
+  - id: build-web
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - apps/web-map-console/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/web:${_IMAGE_TAG}
+      - --build-arg
+      - VITE_API_BASE_URL=${_VITE_API_BASE_URL}
+      - --build-arg
+      - VITE_ROUTING_PUBLIC_BASE=${_VITE_ROUTING_PUBLIC_BASE}
+      - --build-arg
+      - VITE_PMTILES_URL=${_VITE_PMTILES_URL}
+      - --build-arg
+      - VITE_SUPABASE_URL=${_VITE_SUPABASE_URL}
+      - --build-arg
+      - VITE_SUPABASE_ANON_KEY=${_VITE_SUPABASE_ANON_KEY}
+      - --build-arg
+      - VITE_SENTRY_DSN=${_VITE_SENTRY_DSN}
+      - .
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/api:${_IMAGE_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/routing-gateway:${_IMAGE_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/place-resolver:${_IMAGE_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/tracking-gateway:${_IMAGE_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/ocr-worker:${_IMAGE_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/web:${_IMAGE_TAG}
