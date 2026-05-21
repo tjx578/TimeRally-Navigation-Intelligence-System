@@ -28,10 +28,16 @@ export const offlineMapStyle = {
   ]
 };
 
+function numberFromEnv(value: string | undefined, fallback: number) {
+  if (!value) return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 export const fallbackCenter = {
-  lng: 115.216667,
-  lat: -8.65,
-  zoom: 12
+  lng: numberFromEnv(import.meta.env.VITE_MAP_CENTER_LNG, 115.216667),
+  lat: numberFromEnv(import.meta.env.VITE_MAP_CENTER_LAT, -8.65),
+  zoom: numberFromEnv(import.meta.env.VITE_MAP_ZOOM, 12),
 };
 
 export const baliBounds = BALI_BOUNDS;
@@ -80,4 +86,3 @@ export function resolveMapStyle(): string | typeof offlineMapStyle | {
 }
 
 export { offlineMapConfig };
-
