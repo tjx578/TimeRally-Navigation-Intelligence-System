@@ -17,6 +17,7 @@ from rally_core.parser import abbreviations as ab
 
 _TOKEN_RE = re.compile(r"[A-Za-z]+(?:\.[A-Za-z]+)*|\d+(?:[\.,]\d+)?|[A-Za-z]+\d+|[^\s]")
 _KMPAL_PART = re.compile(r"^[A-Z]{2,5}\s*\d+(?:[\.,]\d+)?$")
+_DIRECTION_WORDS = {"kanan", "kiri"}
 
 
 def _is_number_token(token: str) -> bool:
@@ -61,6 +62,8 @@ def _classify(token: str) -> tuple[str, str | None]:
         return "landmark_modifier", ab.LANDMARK_MODIFIERS[raw.upper()]
     if raw.lower() in ab.RELATION_PREPS:
         return "relation", ab.RELATION_PREPS[raw.lower()]
+    if raw.lower() in _DIRECTION_WORDS:
+        return "direction", raw.lower()
     if raw.replace(",", ".").replace(".", "").isdigit():
         return "number", raw.replace(",", ".")
     return "name", None
