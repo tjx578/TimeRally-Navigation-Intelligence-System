@@ -16,11 +16,24 @@ export interface SentryBootstrapOptions {
   release?: string;
 }
 
+type SentryReactModule = {
+  init: (options: {
+    dsn: string;
+    environment: string;
+    tracesSampleRate: number;
+    release: string;
+  }) => void;
+};
+
+const optionalImport = new Function("specifier", "return import(specifier)") as (
+  specifier: string
+) => Promise<SentryReactModule>;
+
 export async function initSentry(options: SentryBootstrapOptions = {}): Promise<boolean> {
   const dsn = options.dsn ?? import.meta.env.VITE_SENTRY_DSN;
   if (!dsn) return false;
   try {
-    const Sentry = await import(/* @vite-ignore */ "@sentry/react");
+    const Sentry = await optionalImport("@sentry/react");
     Sentry.init({
       dsn,
       environment: options.environment ?? import.meta.env.VITE_SENTRY_ENVIRONMENT ?? "production",
