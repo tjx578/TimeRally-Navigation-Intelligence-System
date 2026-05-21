@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Salin packages domain dan service API
 COPY packages /app/packages
+COPY data/curated /app/data/curated
 COPY services/api /app/services/api
 
 ENV PYTHONPATH=/app/packages/rally_core/..:/app/packages/geo_engine/..:/app/packages/knowledge_engine/..:/app/packages/data_contracts/..:/app/services/api
