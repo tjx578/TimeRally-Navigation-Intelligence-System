@@ -1,4 +1,4 @@
-import { Check, Flag, MapPinned, Navigation } from "lucide-react";
+import { Check, Flag, MapPinned, Navigation, TriangleAlert } from "lucide-react";
 import { useRallyWorkspaceStore } from "../../lib/state/rallyWorkspaceStore";
 
 function formatDistance(distanceKm: number | null) {
@@ -14,12 +14,22 @@ function modeLabel(mode: string) {
   return "Zero trip";
 }
 
+function endpointStatusLabel(status: string) {
+  if (status === "explicit") return "explicit";
+  if (status === "inherited") return "inherited";
+  if (status === "missing_location") return "perlu lokasi";
+  if (status === "inferred_last_waypoint") return "infer last";
+  return "missing";
+}
+
 export function SubTrayekMapPanel() {
   const routes = useRallyWorkspaceStore((state) => state.mappedSubTrayeks);
   const execution = useRallyWorkspaceStore((state) => state.execution);
   const selectSubTrayekRoute = useRallyWorkspaceStore((state) => state.selectSubTrayekRoute);
+  const updateSubTrayekEndpoint = useRallyWorkspaceStore((state) => state.updateSubTrayekEndpoint);
   const finishActiveSubTrayek = useRallyWorkspaceStore((state) => state.finishActiveSubTrayek);
   const activeRoute = routes.find((route) => route.id === execution.activeSubTrayekId) ?? routes[0];
+  const endpointBlocked = activeRoute?.needsUserStart || activeRoute?.needsUserFinish;
 
   if (!activeRoute) {
     return (
@@ -59,6 +69,37 @@ export function SubTrayekMapPanel() {
           </div>
         </div>
 
+        <div className="endpoint-editor-grid">
+          <label className={activeRoute.needsUserStart ? "endpoint-field needs-review" : "endpoint-field"}>
+            <span>
+              Start
+              <em>{endpointStatusLabel(activeRoute.startStatus)}</em>
+            </span>
+            <input
+              aria-label={`Start Sub ${activeRoute.sub}`}
+              value={activeRoute.startLabel}
+              onChange={(event) => updateSubTrayekEndpoint(activeRoute.id, "start", event.target.value)}
+            />
+          </label>
+          <label className={activeRoute.needsUserFinish ? "endpoint-field needs-review" : "endpoint-field"}>
+            <span>
+              Finish
+              <em>{endpointStatusLabel(activeRoute.finishStatus)}</em>
+            </span>
+            <input
+              aria-label={`Finish Sub ${activeRoute.sub}`}
+              value={activeRoute.finishLabel}
+              onChange={(event) => updateSubTrayekEndpoint(activeRoute.id, "finish", event.target.value)}
+            />
+          </label>
+        </div>
+
+        {endpointBlocked ? (
+          <p className="metric-label endpoint-warning">
+            <TriangleAlert size={13} /> Start/finish wajib lengkap sebelum routing final.
+          </p>
+        ) : null}
+
         <div className="route-review-grid">
           <span>Start {activeRoute.scheduledStartTime}</span>
           <span>Finish {activeRoute.scheduledFinishTime}</span>
@@ -79,7 +120,12 @@ export function SubTrayekMapPanel() {
           <span>Navi review: {execution.navigatorWorkingSubTrayekId ? routes.find((route) => route.id === execution.navigatorWorkingSubTrayekId)?.sub : "-"}</span>
         </div>
 
-        <button className="icon-button primary full-width" type="button" onClick={finishActiveSubTrayek}>
+        <button
+          className="icon-button primary full-width"
+          type="button"
+          onClick={finishActiveSubTrayek}
+          disabled={endpointBlocked}
+        >
           {activeRoute.roadbookReady ? <Check size={16} /> : <Flag size={16} />}
           {activeRoute.roadbookReady ? "Sudah Masuk Roadbook" : "Finish Sub Ini"}
         </button>

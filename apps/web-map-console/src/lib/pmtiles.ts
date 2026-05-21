@@ -7,20 +7,31 @@ type MapLibreProtocolHost = {
 
 let pmtilesProtocolInstalled = false;
 
+function truthy(value: string | undefined) {
+  return value === "true" || value === "1";
+}
+
 export function getPmtilesUrl() {
   return import.meta.env.VITE_PMTILES_URL ?? "";
+}
+
+export function isPmtilesReady() {
+  return truthy(import.meta.env.VITE_PMTILES_READY);
 }
 
 export function getMapStyleUrl() {
   return import.meta.env.VITE_MAP_STYLE_URL ?? "";
 }
 
+export function getMapFallbackStyleUrl() {
+  return import.meta.env.VITE_MAP_FALLBACK_STYLE_URL ?? "";
+}
+
 export function installPmtilesProtocol(maplibre: MapLibreProtocolHost) {
-  const pmtilesUrl = getPmtilesUrl();
   const addProtocol = maplibre.addProtocol as
     | ((scheme: string, handler: unknown) => void)
     | undefined;
-  if (!pmtilesUrl || !addProtocol) {
+  if (!addProtocol) {
     return false;
   }
 
@@ -30,6 +41,40 @@ export function installPmtilesProtocol(maplibre: MapLibreProtocolHost) {
     pmtilesProtocolInstalled = true;
   }
   return true;
+}
+
+async function canLoadPmtilesArchive(pmtilesUrl: string) {
+  try {
+    const response = await fetch(pmtilesUrl, {
+      method: "HEAD",
+      cache: "no-store",
+      mode: "cors"
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function resolveInitialMapStyle(usePmtiles: boolean): Promise<StyleSpecification | string> {
+  const mapStyleUrl = getMapStyleUrl();
+  const pmtilesUrl = getPmtilesUrl();
+  if (mapStyleUrl && usePmtiles && pmtilesUrl && isPmtilesReady()) {
+    const pmtilesReady = await canLoadPmtilesArchive(pmtilesUrl);
+    if (pmtilesReady) {
+      return mapStyleUrl;
+    }
+
+    const fallbackStyleUrl = getMapFallbackStyleUrl();
+    return fallbackStyleUrl || buildOnlineRasterFallbackStyle();
+  }
+
+  if (mapStyleUrl && pmtilesUrl && !isPmtilesReady()) {
+    const fallbackStyleUrl = getMapFallbackStyleUrl();
+    return fallbackStyleUrl || buildOnlineRasterFallbackStyle();
+  }
+
+  return buildOfflineStyle(usePmtiles);
 }
 
 export function buildOfflineStyle(usePmtiles: boolean): StyleSpecification | string {
@@ -113,7 +158,7 @@ export function buildOfflineStyle(usePmtiles: boolean): StyleSpecification | str
           "source-layer": "transportation_name",
           minzoom: 12,
           paint: { "line-color": "#60717d", "line-width": 0.01, "line-opacity": 0.01 }
-        },
+        }
       ]
     } as StyleSpecification;
   }

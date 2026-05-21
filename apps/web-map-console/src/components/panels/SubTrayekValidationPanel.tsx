@@ -20,6 +20,14 @@ function statusLabel(status: TimingValidationStatus) {
   return "belum cek";
 }
 
+function endpointStatusLabel(status: string) {
+  if (status === "explicit") return "explicit";
+  if (status === "inherited") return "inherited";
+  if (status === "missing_location") return "perlu lokasi";
+  if (status === "inferred_last_waypoint") return "infer last";
+  return "missing";
+}
+
 export function SubTrayekValidationPanel() {
   const timing = useRallyWorkspaceStore((state) => state.timingValidation);
 
@@ -75,7 +83,9 @@ export function SubTrayekValidationPanel() {
             <tr>
               <th>Sub</th>
               <th>Start</th>
+              <th>Start status</th>
               <th>Finish</th>
+              <th>Finish status</th>
               <th>Jarak</th>
               <th>Waktu</th>
               <th>Kecepatan</th>
@@ -90,8 +100,24 @@ export function SubTrayekValidationPanel() {
                   <strong>{row.sub}</strong>
                   <div className="table-subtext">{row.title}</div>
                 </td>
-                <td>{row.scheduledStartTime}</td>
-                <td>{row.scheduledFinishTime}</td>
+                <td>
+                  <strong>{row.scheduledStartTime}</strong>
+                  <div className="table-subtext">{row.startRawText ?? "-"}</div>
+                </td>
+                <td>
+                  <span className={`status-pill timing-${row.needsUserStart ? "warning" : "valid"}`}>
+                    {endpointStatusLabel(row.startStatus)}
+                  </span>
+                </td>
+                <td>
+                  <strong>{row.scheduledFinishTime}</strong>
+                  <div className="table-subtext">{row.finishRawText ?? "-"}</div>
+                </td>
+                <td>
+                  <span className={`status-pill timing-${row.needsUserFinish ? "warning" : "valid"}`}>
+                    {endpointStatusLabel(row.finishStatus)}
+                  </span>
+                </td>
                 <td>{formatKm(row.declaredDistanceKm, row.inferredDistanceKm)}</td>
                 <td>{row.declaredDurationMinutes} mnt</td>
                 <td>{formatSpeed(row.calculatedSpeedKmh)}</td>

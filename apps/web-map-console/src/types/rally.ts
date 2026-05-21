@@ -76,6 +76,13 @@ export type SubTrayekSpeedMode =
 
 export type TimingValidationStatus = "valid" | "warning" | "error" | "unchecked";
 
+export type EndpointStatus =
+  | "explicit"
+  | "inherited"
+  | "missing_location"
+  | "missing"
+  | "inferred_last_waypoint";
+
 export type SubTrayekTimingRow = {
   id: string;
   sub: string;
@@ -93,6 +100,12 @@ export type SubTrayekTimingRow = {
   cumulativeStartMinutes: number;
   cumulativeFinishMinutes: number;
   routeTextExcerpt: string;
+  startRawText: string | null;
+  finishRawText: string | null;
+  startStatus: EndpointStatus | string;
+  finishStatus: EndpointStatus | string;
+  needsUserStart: boolean;
+  needsUserFinish: boolean;
   status: TimingValidationStatus;
   notes: string[];
 };
@@ -164,6 +177,10 @@ export type MappedSubTrayekRoute = {
   title: string;
   startLabel: string;
   finishLabel: string;
+  startStatus: EndpointStatus | string;
+  finishStatus: EndpointStatus | string;
+  needsUserStart: boolean;
+  needsUserFinish: boolean;
   distanceKm: number | null;
   durationMinutes: number;
   speedKmh: number | null;

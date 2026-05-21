@@ -376,6 +376,13 @@ select {
   color: #ffffff;
 }
 
+.icon-button:disabled {
+  border-color: #cbd5e1;
+  background: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
 .icon-button.full-width {
   width: 100%;
   margin-top: 10px;
@@ -727,6 +734,54 @@ select {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
+}
+
+.endpoint-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.endpoint-field {
+  display: grid;
+  gap: 4px;
+}
+
+.endpoint-field span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.endpoint-field em {
+  color: #64748b;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.endpoint-field input {
+  min-width: 0;
+  width: 100%;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.endpoint-field.needs-review input {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.endpoint-warning {
+  color: #92400e;
 }
 
 .route-review-grid span,

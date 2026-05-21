@@ -81,6 +81,12 @@ export async function validateTimingTable(req: TimingValidateRequest): Promise<T
     cumulativeStartMinutes: row.cumulative_start_minutes ?? 0,
     cumulativeFinishMinutes: row.cumulative_finish_minutes ?? 0,
     routeTextExcerpt: "",
+    startRawText: null,
+    finishRawText: null,
+    startStatus: "missing",
+    finishStatus: "missing",
+    needsUserStart: false,
+    needsUserFinish: false,
     status: row.status,
     notes: row.notes,
   }));

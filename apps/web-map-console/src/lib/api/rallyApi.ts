@@ -24,6 +24,14 @@ export type ParseRallyResponse = {
     duration_minutes?: number | null;
     speed_mode: string;
     distance_counted_in_total: boolean;
+    start_waypoint_id?: string | null;
+    finish_waypoint_id?: string | null;
+    start_raw_text?: string | null;
+    finish_raw_text?: string | null;
+    start_status: string;
+    finish_status: string;
+    needs_user_start: boolean;
+    needs_user_finish: boolean;
     waypoints: Array<{ id: string; raw_text: string; ambiguous: boolean }>;
   }>;
   unresolved_tokens: Array<{ token: string; reason: string }>;

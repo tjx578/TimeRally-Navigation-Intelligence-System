@@ -24,6 +24,7 @@ type WorkspaceState = RallyWorkspace & {
   setPhotoOcrResult: (result: PhotoOcrResponse) => void;
   applyParsedRally: (result: ParseRallyResponse) => void;
   selectSubTrayekRoute: (subTrayekId: string) => void;
+  updateSubTrayekEndpoint: (subTrayekId: string, endpoint: "start" | "finish", value: string) => void;
   finishActiveSubTrayek: () => void;
   setRouteEditMode: (mode: RouteEditMode) => void;
   toggleSnapToRoad: () => void;
@@ -133,12 +134,13 @@ function buildValidationSummary(timing: TrayekTimingValidation): ValidationSumma
     Math.abs(timing.distanceDeltaKm) <= timing.toleranceDistanceKm ? "compliant" : "warning";
   const timeStatus =
     Math.abs(timing.durationDeltaMinutes) <= timing.toleranceDurationMinutes ? "compliant" : "warning";
+  const endpointBlocked = timing.rows.some((row) => row.needsUserStart || row.needsUserFinish);
   const score = timing.status === "valid" ? 94 : timing.status === "warning" ? 76 : 42;
 
   return {
     distanceStatus,
     timeStatus,
-    chainingStatus: timing.rows.length > 0 ? "warning" : "violation",
+    chainingStatus: endpointBlocked ? "violation" : timing.rows.length > 0 ? "compliant" : "violation",
     score
   };
 }
@@ -148,8 +150,9 @@ function routeExcerpt(rawWaypoints: string[]) {
   return excerpt || "Belum ada waypoint terbaca.";
 }
 
-function rowStatus(distanceKm: number | null, durationMinutes: number): TimingValidationStatus {
+function rowStatus(distanceKm: number | null, durationMinutes: number, endpointBlocked = false): TimingValidationStatus {
   if (durationMinutes <= 0) return "error";
+  if (endpointBlocked) return "warning";
   if (distanceKm === null) return "warning";
   return "valid";
 }
@@ -169,6 +172,9 @@ function buildScheduleFromParsed(result: ParseRallyResponse, masterStartTime: st
     const cumulativeStartMinutes = cumulativeMinutes;
     const cumulativeFinishMinutes = cumulativeStartMinutes + durationMinutes;
     const rawWaypoints = subTrayek.waypoints.map((waypoint) => waypoint.raw_text);
+    const startRawText = subTrayek.start_raw_text ?? rawWaypoints[0] ?? null;
+    const finishRawText = subTrayek.finish_raw_text ?? rawWaypoints[rawWaypoints.length - 1] ?? null;
+    const endpointBlocked = subTrayek.needs_user_start || subTrayek.needs_user_finish;
 
     if (subTrayek.distance_counted_in_total && distanceKm !== null) {
       calculatedDistanceKm += distanceKm;
@@ -179,6 +185,9 @@ function buildScheduleFromParsed(result: ParseRallyResponse, masterStartTime: st
     const notes = [
       ...(distanceKm === null ? ["Jarak sub-trayek belum terbaca eksplisit."] : []),
       ...(durationMinutes <= 0 ? ["Durasi sub-trayek belum terbaca."] : []),
+      ...(subTrayek.needs_user_start ? ["Start wajib diisi navigator sebelum mapping/routing."] : []),
+      ...(subTrayek.needs_user_finish ? ["Finish wajib diisi navigator sebelum mapping/routing."] : []),
+      ...(subTrayek.start_status === "inherited" ? ["Start diwarisi dari finish sub sebelumnya."] : []),
       ...subTrayek.waypoints
         .filter((waypoint) => waypoint.ambiguous)
         .map((waypoint) => `Waypoint ambigu: ${waypoint.raw_text}`)
@@ -200,7 +209,13 @@ function buildScheduleFromParsed(result: ParseRallyResponse, masterStartTime: st
       cumulativeStartMinutes,
       cumulativeFinishMinutes,
       routeTextExcerpt: routeExcerpt(rawWaypoints),
-      status: rowStatus(distanceKm, durationMinutes),
+      startRawText,
+      finishRawText,
+      startStatus: subTrayek.start_status,
+      finishStatus: subTrayek.finish_status,
+      needsUserStart: subTrayek.needs_user_start,
+      needsUserFinish: subTrayek.needs_user_finish,
+      status: rowStatus(distanceKm, durationMinutes, endpointBlocked),
       notes
     };
   });
@@ -233,8 +248,9 @@ function buildScheduleFromParsed(result: ParseRallyResponse, masterStartTime: st
   const mappedSubTrayeks: MappedSubTrayekRoute[] = result.sub_trayeks.map((subTrayek, index) => {
     const row = rows[index];
     const rawWaypoints = subTrayek.waypoints.map((waypoint) => waypoint.raw_text);
-    const startLabel = rawWaypoints[0] ?? `Sub ${subTrayek.label} start`;
-    const finishLabel = rawWaypoints[rawWaypoints.length - 1] ?? `Sub ${subTrayek.label} finish`;
+    const startLabel = subTrayek.start_raw_text ?? rawWaypoints[0] ?? `Sub ${subTrayek.label} start`;
+    const finishLabel = subTrayek.finish_raw_text ?? rawWaypoints[rawWaypoints.length - 1] ?? `Sub ${subTrayek.label} finish`;
+    const endpointBlocked = subTrayek.needs_user_start || subTrayek.needs_user_finish;
 
     return {
       id: subTrayek.id,
@@ -242,6 +258,10 @@ function buildScheduleFromParsed(result: ParseRallyResponse, masterStartTime: st
       title: row.title,
       startLabel,
       finishLabel,
+      startStatus: subTrayek.start_status,
+      finishStatus: subTrayek.finish_status,
+      needsUserStart: subTrayek.needs_user_start,
+      needsUserFinish: subTrayek.needs_user_finish,
       distanceKm: row.declaredDistanceKm,
       durationMinutes: row.declaredDurationMinutes,
       speedKmh: row.calculatedSpeedKmh,
@@ -252,12 +272,16 @@ function buildScheduleFromParsed(result: ParseRallyResponse, masterStartTime: st
       cumulativeStartMinutes: row.cumulativeStartMinutes,
       cumulativeFinishMinutes: row.cumulativeFinishMinutes,
       waypointCount: subTrayek.waypoints.length,
-      mapStatus: subTrayek.waypoints.length > 0 ? "ocr_ready" : "needs_review",
+      mapStatus: endpointBlocked || subTrayek.waypoints.length === 0 ? "needs_review" : "ocr_ready",
       geometry: [] as Coordinate[],
       routeSummary:
-        subTrayek.waypoints.length > 0
-          ? `Waypoint OCR siap di-resolve koordinat: ${routeExcerpt(rawWaypoints)}`
-          : "Belum ada waypoint untuk di-resolve.",
+        endpointBlocked
+          ? "Start/finish belum lengkap. Isi endpoint sebelum generate peta final."
+          : subTrayek.start_status === "inherited"
+            ? `Start diwarisi dari finish sub sebelumnya: ${startLabel}. ${routeExcerpt(rawWaypoints)}`
+            : subTrayek.waypoints.length > 0
+              ? `Waypoint OCR siap di-resolve koordinat: ${routeExcerpt(rawWaypoints)}`
+              : "Belum ada waypoint untuk di-resolve.",
       roadbookReady: false
     };
   });
@@ -452,6 +476,77 @@ export const useRallyWorkspaceStore = create<WorkspaceState>((set) => ({
         selectedSubTrayekId: subTrayekId
       }
     })),
+  updateSubTrayekEndpoint: (subTrayekId, endpoint, value) =>
+    set((state) => {
+      const cleanValue = value.trim();
+      const isReady = cleanValue.length > 0;
+      const timingRows = state.timingValidation?.rows.map((row) => {
+        if (row.id !== subTrayekId) return row;
+        const nextRow = {
+          ...row,
+          ...(endpoint === "start"
+            ? {
+                startRawText: cleanValue || null,
+                startStatus: isReady ? "explicit" : "missing",
+                needsUserStart: !isReady
+              }
+            : {
+                finishRawText: cleanValue || null,
+                finishStatus: isReady ? "explicit" : "missing",
+                needsUserFinish: !isReady
+              })
+        };
+        return {
+          ...nextRow,
+          status: rowStatus(
+            nextRow.declaredDistanceKm,
+            nextRow.declaredDurationMinutes,
+            nextRow.needsUserStart || nextRow.needsUserFinish
+          )
+        };
+      });
+
+      const mappedSubTrayeks: MappedSubTrayekRoute[] = state.mappedSubTrayeks.map((route) => {
+        if (route.id !== subTrayekId) return route;
+        const nextRoute = {
+          ...route,
+          ...(endpoint === "start"
+            ? {
+                startLabel: cleanValue,
+                startStatus: isReady ? "explicit" : "missing",
+                needsUserStart: !isReady
+              }
+            : {
+                finishLabel: cleanValue,
+                finishStatus: isReady ? "explicit" : "missing",
+                needsUserFinish: !isReady
+              })
+        };
+        const endpointBlocked = nextRoute.needsUserStart || nextRoute.needsUserFinish;
+        return {
+          ...nextRoute,
+          mapStatus: endpointBlocked ? "needs_review" : "ocr_ready" as MappedSubTrayekRoute["mapStatus"],
+          routeSummary: endpointBlocked
+            ? "Start/finish belum lengkap. Isi endpoint sebelum generate peta final."
+            : "Endpoint sudah lengkap. Waypoint siap di-resolve koordinat."
+        };
+      });
+
+      const timingValidation = state.timingValidation && timingRows
+        ? {
+            ...state.timingValidation,
+            rows: timingRows,
+            status: timingRows.some((row) => row.status !== "valid") ? "warning" as const : state.timingValidation.status
+          }
+        : state.timingValidation;
+
+      return {
+        timingValidation,
+        mappedSubTrayeks,
+        validation: timingValidation ? buildValidationSummary(timingValidation) : state.validation,
+        roadbook: buildRoadbookFromRoutes(mappedSubTrayeks)
+      };
+    }),
   finishActiveSubTrayek: () =>
     set((state) => {
       const activeIndex = state.mappedSubTrayeks.findIndex(
