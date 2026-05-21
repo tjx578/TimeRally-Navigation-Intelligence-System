@@ -5,6 +5,10 @@ substitutions:
   _VITE_API_BASE_URL: ""
   _VITE_ROUTING_PUBLIC_BASE: ""
   _VITE_PMTILES_URL: ""
+  _VITE_MAP_STYLE_URL: ""
+  _VITE_MAP_CENTER_LNG: ""
+  _VITE_MAP_CENTER_LAT: ""
+  _VITE_MAP_ZOOM: ""
   _VITE_SUPABASE_URL: ""
   _VITE_SUPABASE_ANON_KEY: ""
   _VITE_SENTRY_DSN: ""
@@ -39,6 +43,14 @@ steps:
       - VITE_ROUTING_PUBLIC_BASE=${_VITE_ROUTING_PUBLIC_BASE}
       - --build-arg
       - VITE_PMTILES_URL=${_VITE_PMTILES_URL}
+      - --build-arg
+      - VITE_MAP_STYLE_URL=${_VITE_MAP_STYLE_URL}
+      - --build-arg
+      - VITE_MAP_CENTER_LNG=${_VITE_MAP_CENTER_LNG}
+      - --build-arg
+      - VITE_MAP_CENTER_LAT=${_VITE_MAP_CENTER_LAT}
+      - --build-arg
+      - VITE_MAP_ZOOM=${_VITE_MAP_ZOOM}
       - --build-arg
       - VITE_SUPABASE_URL=${_VITE_SUPABASE_URL}
       - --build-arg
