@@ -1,0 +1,1 @@
+"""Routing gateway FastAPI service."""

@@ -1,3 +1,7 @@
+"""Router /v1/validation - validasi binding constraint dan timing table."""
+
+from __future__ import annotations
+
 from fastapi import APIRouter
 
 from app.schemas.validation import (
@@ -7,6 +11,7 @@ from app.schemas.validation import (
     ValidationRequest,
     ValidationResponse,
 )
+from rally_core.constraints.engine import ConstraintEngine
 
 
 router = APIRouter()
@@ -38,15 +43,41 @@ def _classification_label(speed_mode: str) -> str:
 
 @router.post("/route", response_model=ValidationResponse)
 def validate_route(request: ValidationRequest) -> ValidationResponse:
+    engine = ConstraintEngine()
+    dist_check = engine.check_total_distance(
+        target_km=request.target_distance_km,
+        calculated_km=request.calculated_distance_km,
+    )
+    time_check = engine.check_total_time(
+        target_min=float(request.target_time_minutes),
+        calculated_min=request.calculated_time_minutes,
+    )
+    chaining_status = (
+        "compliant"
+        if request.chaining_gap_meters <= engine.chaining_tolerance_m
+        else "warning"
+        if request.chaining_gap_meters <= engine.chaining_tolerance_m * 4
+        else "violation"
+    )
+
+    score_components = [dist_check.status, time_check.status, chaining_status]
+    score = sum(1 for s in score_components if s == "compliant") * 33
+
     warnings: list[str] = []
+    if dist_check.status != "compliant":
+        warnings.append(dist_check.message)
+    if time_check.status != "compliant":
+        warnings.append(time_check.message)
+    if chaining_status != "compliant":
+        warnings.append(f"chaining gap {request.chaining_gap_meters:.1f} m melebihi toleransi")
     if request.target_distance_km <= 0:
         warnings.append("target_distance_km must be greater than zero")
 
     return ValidationResponse(
-        distance_status="pending",
-        time_status="pending",
-        chaining_status="pending",
-        score=0,
+        distance_status=dist_check.status,
+        time_status=time_check.status,
+        chaining_status=chaining_status,
+        score=score,
         warnings=warnings,
     )
 

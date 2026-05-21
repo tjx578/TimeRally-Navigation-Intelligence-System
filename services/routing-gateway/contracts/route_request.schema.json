@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RouteRequest",
+  "type": "object",
+  "required": ["provider", "route"],
+  "properties": {
+    "provider": {"enum": ["valhalla", "osrm", "graphhopper", "google", "mock"]},
+    "route": {
+      "type": "object",
+      "required": ["waypoints"],
+      "properties": {
+        "waypoints": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "coord"],
+            "properties": {
+              "id": {"type": "string"},
+              "name": {"type": "string"},
+              "coord": {
+                "type": "object",
+                "required": ["lat", "lng"],
+                "properties": {
+                  "lat": {"type": "number"},
+                  "lng": {"type": "number"}
+                }
+              }
+            }
+          }
+        },
+        "profile": {"type": "string", "default": "rally_car"},
+        "allow_reorder": {"type": "boolean", "default": false},
+        "avoid": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

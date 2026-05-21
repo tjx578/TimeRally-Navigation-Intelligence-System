@@ -1,0 +1,15 @@
+{
+  "sources": [
+    {
+      "name": "OpenStreetMap",
+      "license": "ODbL 1.0",
+      "url": "https://www.openstreetmap.org/copyright",
+      "note": "Wajib ditampilkan di UI map dan roadbook export."
+    },
+    {
+      "name": "OpenMapTiles schema",
+      "license": "BSD 3-Clause",
+      "url": "https://openmaptiles.org"
+    }
+  ]
+}

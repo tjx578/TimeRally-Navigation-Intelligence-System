@@ -1,0 +1,24 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data",
+      "mbtiles": "/data/mbtiles",
+      "pmtiles": "/data/pmtiles",
+      "fonts": "/data/fonts",
+      "styles": "/data/styles"
+    },
+    "serveStaticMaps": true,
+    "domains": ["*"]
+  },
+  "styles": {
+    "rally-offline": {
+      "style": "rally-offline.json",
+      "tilejson": {"type": "vector"}
+    }
+  },
+  "data": {
+    "offline": {
+      "mbtiles": "region.mbtiles"
+    }
+  }
+}

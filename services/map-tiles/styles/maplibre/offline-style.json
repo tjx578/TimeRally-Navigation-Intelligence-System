@@ -1,20 +1,88 @@
 {
   "version": 8,
   "name": "Time Rally Offline",
+  "metadata": {
+    "rally:profile": "field-mobile",
+    "rally:attribution": "Map data © OpenStreetMap contributors"
+  },
+  "glyphs": "pmtiles://fonts/{fontstack}/{range}.pbf",
   "sources": {
     "offline": {
       "type": "vector",
       "url": "pmtiles://offline-map.pmtiles"
+    },
+    "rally-route": {
+      "type": "geojson",
+      "data": {"type": "FeatureCollection", "features": []}
     }
   },
   "layers": [
     {
       "id": "background",
       "type": "background",
+      "paint": {"background-color": "#eef2f7"}
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "offline",
+      "source-layer": "water",
+      "paint": {"fill-color": "#a5cbe3"}
+    },
+    {
+      "id": "landuse",
+      "type": "fill",
+      "source": "offline",
+      "source-layer": "landuse",
+      "paint": {"fill-color": "#e8efe5"}
+    },
+    {
+      "id": "roads-minor",
+      "type": "line",
+      "source": "offline",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "service", "minor", "track"],
+      "paint": {"line-color": "#cfd8dc", "line-width": 1.0}
+    },
+    {
+      "id": "roads-major",
+      "type": "line",
+      "source": "offline",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "trunk", "primary", "secondary", "tertiary"],
+      "paint": {"line-color": "#ffb74d", "line-width": 2.0}
+    },
+    {
+      "id": "roads-motorway",
+      "type": "line",
+      "source": "offline",
+      "source-layer": "transportation",
+      "filter": ["==", "class", "motorway"],
+      "paint": {"line-color": "#ff7043", "line-width": 3.0}
+    },
+    {
+      "id": "rally-route-line",
+      "type": "line",
+      "source": "rally-route",
+      "filter": ["==", "kind", "segment"],
       "paint": {
-        "background-color": "#eef2f7"
+        "line-color": "#1e88e5",
+        "line-width": 4,
+        "line-opacity": 0.85
+      },
+      "layout": {"line-cap": "round", "line-join": "round"}
+    },
+    {
+      "id": "rally-waypoints",
+      "type": "circle",
+      "source": "rally-route",
+      "filter": ["==", "kind", "waypoint"],
+      "paint": {
+        "circle-radius": 5,
+        "circle-color": "#d32f2f",
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2
       }
     }
   ]
 }
-
