@@ -25,6 +25,15 @@ data/mapdata/
 services/map-tiles/packages/*.pmtiles
 services/map-tiles/packages/*.mbtiles
 
+# Offline Bali build artefacts (host-side, jangan tracked)
+tools/offline-bali/*.osm.pbf
+tools/offline-bali/*.mbtiles
+tools/offline-bali/*.osrm*
+tools/offline-bali/tmp/
+
+# Frontend local override
+apps/web-map-console/.env.local
+
 # OS / editor
 .DS_Store
 Thumbs.db
