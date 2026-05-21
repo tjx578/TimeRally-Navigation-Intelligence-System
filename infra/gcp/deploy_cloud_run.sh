@@ -49,6 +49,16 @@ TRACKING_IMAGE="${ARTIFACT_BASE}/tracking-gateway:${IMAGE_TAG}"
 OCR_IMAGE="${ARTIFACT_BASE}/ocr-worker:${IMAGE_TAG}"
 WEB_IMAGE="${ARTIFACT_BASE}/web:${IMAGE_TAG}"
 
+run_deploy "${OCR_SERVICE}" "${OCR_IMAGE}" \
+  --cpu="${OCR_CPU:-1}" \
+  --memory="${OCR_MEMORY:-1Gi}" \
+  --min-instances="${OCR_MIN_INSTANCES:-0}" \
+  --set-env-vars="APP_ENV=production,OCR_ENGINE=${OCR_ENGINE:-google_vision},OCR_MIN_CONFIDENCE=${OCR_MIN_CONFIDENCE:-0.1}"
+
+OCR_WORKER_URL_DEFAULT="$(gcloud run services describe "${OCR_SERVICE}" \
+  --region="${REGION}" \
+  --format='value(status.url)')"
+
 API_SECRETS=()
 for item in \
   "$(secret_flag DATABASE_URL "${SECRET_PREFIX}-database-url")" \
@@ -61,7 +71,7 @@ API_ARGS=(
   --memory="${API_MEMORY:-4Gi}"
   --min-instances="${API_MIN_INSTANCES:-1}"
   --add-cloudsql-instances="${CLOUD_SQL_CONNECTION}"
-  --set-env-vars="APP_ENV=production,PUBLIC_API_URL=${PUBLIC_API_URL:-},PUBLIC_WEB_URL=${PUBLIC_WEB_URL:-},API_CORS_ORIGINS=${API_CORS_ORIGINS:-${PUBLIC_WEB_URL:-}},EXPORTS_ROOT=${EXPORTS_ROOT:-gs://${BUCKET_NAME}/exports},GCS_BUCKET_NAME=${BUCKET_NAME},GCS_EXPORTS_PREFIX=${GCS_EXPORTS_PREFIX:-exports},GCS_PHOTOS_PREFIX=${GCS_PHOTOS_PREFIX:-photos},KNOWLEDGE_ROOT=/app/data/curated,ROUTING_GATEWAY_URL=${ROUTING_GATEWAY_URL:-http://routing-gateway:8010},SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-production},SENTRY_TRACES_SAMPLE_RATE=${SENTRY_TRACES_SAMPLE_RATE:-0.05}"
+  --set-env-vars="APP_ENV=production,PUBLIC_API_URL=${PUBLIC_API_URL:-},PUBLIC_WEB_URL=${PUBLIC_WEB_URL:-},API_CORS_ORIGINS=${API_CORS_ORIGINS:-${PUBLIC_WEB_URL:-}},EXPORTS_ROOT=${EXPORTS_ROOT:-gs://${BUCKET_NAME}/exports},GCS_BUCKET_NAME=${BUCKET_NAME},GCS_EXPORTS_PREFIX=${GCS_EXPORTS_PREFIX:-exports},GCS_PHOTOS_PREFIX=${GCS_PHOTOS_PREFIX:-photos},KNOWLEDGE_ROOT=/app/data/curated,ROUTING_GATEWAY_URL=${ROUTING_GATEWAY_URL:-http://routing-gateway:8010},OCR_WORKER_URL=${OCR_WORKER_URL:-${OCR_WORKER_URL_DEFAULT}},OCR_WORKER_TIMEOUT_SECONDS=${OCR_WORKER_TIMEOUT_SECONDS:-90},SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-production},SENTRY_TRACES_SAMPLE_RATE=${SENTRY_TRACES_SAMPLE_RATE:-0.05}"
 )
 if [[ "${#API_SECRETS[@]}" -gt 0 ]]; then
   API_ARGS+=(--set-secrets="$(join_by_comma "${API_SECRETS[@]}")")
@@ -97,12 +107,6 @@ run_deploy "${TRACKING_GATEWAY_SERVICE}" "${TRACKING_IMAGE}" \
   --cpu="${TRACKING_CPU:-1}" \
   --memory="${TRACKING_MEMORY:-1Gi}" \
   --min-instances="${TRACKING_MIN_INSTANCES:-0}" \
-  --set-env-vars="APP_ENV=production"
-
-run_deploy "${OCR_SERVICE:-timerally-ocr-worker}" "${OCR_IMAGE}" \
-  --cpu="${OCR_CPU:-1}" \
-  --memory="${OCR_MEMORY:-1Gi}" \
-  --min-instances="${OCR_MIN_INSTANCES:-0}" \
   --set-env-vars="APP_ENV=production"
 
 run_deploy "${WEB_SERVICE}" "${WEB_IMAGE}" \
