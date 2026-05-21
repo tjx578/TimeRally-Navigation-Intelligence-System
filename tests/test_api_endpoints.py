@@ -102,6 +102,49 @@ def test_routing_endpoint_mock():
     assert body["total_distance_m"] > 0
 
 
+def test_routing_endpoint_rounds_fractional_provider_values(monkeypatch):
+    assert client is not None
+    import app.routers.routing as routing_router
+    from rally_core.routing.models import ProviderResult, RouteSegment
+
+    def fake_route_event(*args, **kwargs):
+        return ProviderResult(
+            provider="osrm",
+            segments=[
+                RouteSegment(
+                    from_waypoint="wp-denpasar",
+                    to_waypoint="wp-gianyar",
+                    distance_m=28683.4,  # type: ignore[arg-type]
+                    duration_s=1622.6,  # type: ignore[arg-type]
+                    provider="osrm",
+                    status="ok",
+                )
+            ],
+            total_distance_m=28683.4,  # type: ignore[arg-type]
+            total_duration_s=1622.6,  # type: ignore[arg-type]
+        )
+
+    monkeypatch.setattr(routing_router, "route_event", fake_route_event)
+
+    resp = client.post(
+        "/v1/routing/route",
+        json={
+            "provider": "osrm",
+            "waypoints": [
+                {"id": "wp-denpasar", "name": "Denpasar", "coordinate": {"lat": -8.6705, "lng": 115.2126}},
+                {"id": "wp-gianyar", "name": "Gianyar", "coordinate": {"lat": -8.5442, "lng": 115.3250}},
+            ],
+        },
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["legs"][0]["distance_m"] == 28683
+    assert body["legs"][0]["duration_s"] == 1623
+    assert body["total_distance_m"] == 28683
+    assert body["total_duration_s"] == 1623
+
+
 def test_export_endpoint_returns_artifacts():
     assert client is not None
     resp = client.post(
