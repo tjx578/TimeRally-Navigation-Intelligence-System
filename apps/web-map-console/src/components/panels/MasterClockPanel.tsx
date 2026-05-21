@@ -45,8 +45,10 @@ function formatDuration(totalSeconds: number) {
 
 function modeLabel(mode: string) {
   if (mode === "fixed_second") return "Tetap detik";
+  if (mode === "fixed_minute") return "Tetap menit";
   if (mode === "average_speed") return "Rata-rata";
   if (mode === "remaining_distance") return "Sisa finish";
+  if (mode === "free_time") return "Santai";
   return "Zero trip";
 }
 

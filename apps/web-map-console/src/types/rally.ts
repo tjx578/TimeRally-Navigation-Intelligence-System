@@ -70,7 +70,9 @@ export type SubTrayekSpeedMode =
   | "liaison_zero_trip"
   | "average_speed"
   | "fixed_second"
-  | "remaining_distance";
+  | "fixed_minute"
+  | "remaining_distance"
+  | "free_time";
 
 export type TimingValidationStatus = "valid" | "warning" | "error" | "unchecked";
 

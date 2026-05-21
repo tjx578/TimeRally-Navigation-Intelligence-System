@@ -66,13 +66,21 @@ function kmPerSecond(speedKmh: number | null) {
 
 function classifySpeedMode(mode: SubTrayekSpeedMode) {
   if (mode === "fixed_second") return "Kecepatan tetap detik";
+  if (mode === "fixed_minute") return "Kecepatan tetap menit";
   if (mode === "average_speed") return "Kecepatan rata-rata";
   if (mode === "remaining_distance") return "Sisa jarak finish";
+  if (mode === "free_time") return "Santai/bebas";
   return "Start/zero trip";
 }
 
 function coerceSpeedMode(mode: string): SubTrayekSpeedMode {
-  if (mode === "fixed_second" || mode === "average_speed" || mode === "remaining_distance") {
+  if (
+    mode === "fixed_second" ||
+    mode === "fixed_minute" ||
+    mode === "average_speed" ||
+    mode === "remaining_distance" ||
+    mode === "free_time"
+  ) {
     return mode;
   }
   return "liaison_zero_trip";
