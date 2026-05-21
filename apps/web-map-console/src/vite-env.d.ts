@@ -9,6 +9,14 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN?: string;
   readonly VITE_SENTRY_ENVIRONMENT?: string;
   readonly VITE_SENTRY_TRACES_SAMPLE_RATE?: string;
+  // Offline Bali endpoints (lihat .env.local.example)
+  readonly VITE_OFFLINE_MODE?: string;
+  readonly VITE_MAP_STYLE_URL?: string;
+  readonly VITE_TILEJSON_URL?: string;
+  readonly VITE_TILE_BASE_URL?: string;
+  readonly VITE_ROUTING_GATEWAY_URL?: string;
+  readonly VITE_OSRM_URL?: string;
+  readonly VITE_VALHALLA_URL?: string;
 }
 
 interface ImportMeta {
