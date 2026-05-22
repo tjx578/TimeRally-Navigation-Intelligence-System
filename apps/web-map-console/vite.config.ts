@@ -2,7 +2,9 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "./",
+  // base "/" wajib untuk SPA di Cloud Run + nginx. base "./" memakai relative
+  // path yang memecah asset URL saat operator buka deep-link / refresh route.
+  base: "/",
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 900,
