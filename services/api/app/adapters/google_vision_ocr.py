@@ -25,6 +25,11 @@ class GoogleVisionOcrError(RuntimeError):
     """Raised saat Vision OCR gagal memproses payload."""
 
 
+MANUAL_REVIEW_WARNING = (
+    "Hasil OCR Google Vision wajib direview manual sebelum mapping dan export."
+)
+
+
 @dataclass
 class _PhotoOcrFragment:
     filename: str
@@ -104,7 +109,10 @@ class GoogleVisionOcrAdapter:
                 )
                 continue
             try:
-                image_bytes = base64.b64decode(photo.image_base64, validate=False)
+                payload = photo.image_base64.strip()
+                if payload.lower().startswith("data:") and "," in payload:
+                    payload = payload.split(",", 1)[1]
+                image_bytes = base64.b64decode(payload, validate=True)
             except (binascii.Error, ValueError) as exc:
                 warnings.append(f"{photo.filename or 'foto'}: base64 invalid ({exc}).")
                 continue
@@ -124,6 +132,8 @@ class GoogleVisionOcrAdapter:
 
         normalized_text = "\n\n".join(f.text for f in fragments if f.text).strip()
         status = "ok" if normalized_text else "empty"
+        if normalized_text:
+            warnings.append(MANUAL_REVIEW_WARNING)
 
         return PhotoOcrResponse(
             event_name="",
