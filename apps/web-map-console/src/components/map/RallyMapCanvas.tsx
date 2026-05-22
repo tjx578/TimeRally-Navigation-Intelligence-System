@@ -12,6 +12,10 @@ const WAYPOINT_LAYER_ID = "active-subtrayek-waypoints-circle";
 const START_FINISH_SOURCE_ID = "active-subtrayek-start-finish";
 const START_FINISH_LAYER_ID = "active-subtrayek-start-finish-circle";
 const START_FINISH_LABEL_LAYER_ID = "active-subtrayek-start-finish-label";
+const LOCATION_DB_SOURCE_ID = "spreadsheet-location-db";
+const LOCATION_DB_LAYER_ID = "spreadsheet-location-db-circle";
+const LOCATION_DB_LABEL_LAYER_ID = "spreadsheet-location-db-label";
+const LOCATION_DB_GEOJSON_URL = "/data/locations/spreadsheet-locations.geojson";
 
 const DEBUG_DEMO_ROUTE = import.meta.env.VITE_DEBUG_DEMO_ROUTE === "true";
 const DEBUG_SOURCE_ID = "debug-route";
@@ -119,6 +123,7 @@ export function RallyMapCanvas() {
         if (DEBUG_DEMO_ROUTE) {
           installDebugRoute(map);
         }
+        void installLocationDatabaseLayer(map);
       });
 
       // ResizeObserver: kalau workspace berubah layout (mis. panel pindah, mobile),
@@ -354,6 +359,61 @@ function resetCollection(map: MapLibreMap, sourceId: string) {
   const existing = map.getSource(sourceId) as GeoJSONSource | undefined;
   if (existing) {
     existing.setData(emptyCollection() as Parameters<GeoJSONSource["setData"]>[0]);
+  }
+}
+
+async function installLocationDatabaseLayer(map: MapLibreMap) {
+  if (map.getSource(LOCATION_DB_SOURCE_ID)) return;
+
+  let data: Parameters<GeoJSONSource["setData"]>[0];
+  try {
+    const response = await fetch(LOCATION_DB_GEOJSON_URL);
+    if (!response.ok) return;
+    data = await response.json() as Parameters<GeoJSONSource["setData"]>[0];
+  } catch {
+    return;
+  }
+
+  map.addSource(LOCATION_DB_SOURCE_ID, {
+    type: "geojson",
+    data,
+  });
+
+  if (!map.getLayer(LOCATION_DB_LAYER_ID)) {
+    map.addLayer({
+      id: LOCATION_DB_LAYER_ID,
+      type: "circle",
+      source: LOCATION_DB_SOURCE_ID,
+      minzoom: 8,
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 2, 13, 5],
+        "circle-color": "#f59e0b",
+        "circle-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.35, 13, 0.78],
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 1,
+      },
+    });
+  }
+
+  if (!map.getLayer(LOCATION_DB_LABEL_LAYER_ID)) {
+    map.addLayer({
+      id: LOCATION_DB_LABEL_LAYER_ID,
+      type: "symbol",
+      source: LOCATION_DB_SOURCE_ID,
+      minzoom: 13,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-size": 10,
+        "text-anchor": "top",
+        "text-offset": [0, 0.65],
+        "text-allow-overlap": false,
+      },
+      paint: {
+        "text-color": "#334155",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1.2,
+      },
+    });
   }
 }
 
