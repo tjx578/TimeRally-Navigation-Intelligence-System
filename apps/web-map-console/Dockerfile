@@ -1,48 +1,35 @@
+## Stage 1: build Vite (Node 20 alpine).
 FROM node:20-alpine AS build
-
 WORKDIR /app
 
+# Install dependency dulu supaya cache layer-nya stabil.
 COPY apps/web-map-console/package*.json ./
 RUN npm ci
 
+# Salin semua source termasuk public/ dan .env.production.
 COPY apps/web-map-console/ ./
 
-ARG VITE_API_BASE_URL=""
-ARG VITE_SUPABASE_URL=""
-ARG VITE_SUPABASE_ANON_KEY=""
-ARG VITE_MAP_STYLE_URL=""
-ARG VITE_MAP_CENTER_LNG=""
-ARG VITE_MAP_CENTER_LAT=""
-ARG VITE_MAP_ZOOM=""
-ARG VITE_MAP_FALLBACK_STYLE_URL=""
-ARG VITE_PMTILES_URL=""
-ARG VITE_PMTILES_READY="false"
-ARG VITE_ROUTING_PUBLIC_BASE=""
-ARG VITE_SENTRY_DSN=""
-ARG VITE_SENTRY_ENVIRONMENT="production"
-ARG VITE_SENTRY_TRACES_SAMPLE_RATE="0.05"
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
-ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
-ENV VITE_MAP_STYLE_URL=$VITE_MAP_STYLE_URL
-ENV VITE_MAP_CENTER_LNG=$VITE_MAP_CENTER_LNG
-ENV VITE_MAP_CENTER_LAT=$VITE_MAP_CENTER_LAT
-ENV VITE_MAP_ZOOM=$VITE_MAP_ZOOM
-ENV VITE_MAP_FALLBACK_STYLE_URL=$VITE_MAP_FALLBACK_STYLE_URL
-ENV VITE_PMTILES_URL=$VITE_PMTILES_URL
-ENV VITE_PMTILES_READY=$VITE_PMTILES_READY
-ENV VITE_ROUTING_PUBLIC_BASE=$VITE_ROUTING_PUBLIC_BASE
-ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
-ENV VITE_SENTRY_ENVIRONMENT=$VITE_SENTRY_ENVIRONMENT
-ENV VITE_SENTRY_TRACES_SAMPLE_RATE=$VITE_SENTRY_TRACES_SAMPLE_RATE
+# CATATAN PENTING:
+#   Vite memprioritaskan ENV shell di atas file .env.production. Kalau kita set
+#   ENV VITE_X="" dari ARG default, build akan mengoverride .env.production yang
+#   ditulis oleh redeploy_web.sh -> bundle kosong dari env yang seharusnya berisi.
+#
+#   Karena itu Dockerfile TIDAK lagi mendeklarasikan ARG/ENV VITE_*. Sumber
+#   kebenaran satu-satunya saat build: apps/web-map-console/.env.production
+#   yang sudah ada di image stage ini. Operator bisa override per build dengan
+#   `gcloud builds submit --substitutions=...` lalu menulis ulang .env.production
+#   sebelum docker build (lihat infra/gcp/redeploy_web.sh).
+#
+#   Kalau benar-benar perlu override per-build, pass via --build-arg dan
+#   tambahkan ARG eksplisit untuk variabel itu saja - JANGAN default ke "".
 
 RUN npm run build
 
+## Stage 2: serve via nginx alpine.
 FROM nginx:1.27-alpine
-
 COPY apps/web-map-console/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
-
 EXPOSE 8080
-
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/index.html >/dev/null 2>&1 || exit 1
 CMD ["nginx", "-g", "daemon off;"]
