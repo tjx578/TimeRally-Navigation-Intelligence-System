@@ -52,6 +52,11 @@ class Settings:
     # OCR worker. Kosong berarti photo intake tetap aman masuk mode manual.
     ocr_worker_url: str | None = None
     ocr_worker_timeout_seconds: float = 90.0
+    # OCR provider selection: "worker" | "google_vision" | "auto" (default).
+    # "auto" -> kalau OCR_WORKER_URL diset gunakan worker; else kalau
+    # GOOGLE_VISION_ENABLED=true gunakan Vision; else manual fallback.
+    ocr_provider: str = "auto"
+    google_vision_enabled: bool = False
     # Observability.
     sentry_dsn: str | None = None
     sentry_environment: str = "development"
@@ -134,6 +139,8 @@ def get_settings() -> Settings:
         gcs_photos_prefix=os.getenv("GCS_PHOTOS_PREFIX", "photos").strip("/"),
         ocr_worker_url=os.getenv("OCR_WORKER_URL") or None,
         ocr_worker_timeout_seconds=_to_float(os.getenv("OCR_WORKER_TIMEOUT_SECONDS"), 90.0),
+        ocr_provider=os.getenv("OCR_PROVIDER", "auto").strip().lower() or "auto",
+        google_vision_enabled=_to_bool(os.getenv("GOOGLE_VISION_ENABLED"), default=False),
         sentry_dsn=os.getenv("SENTRY_DSN") or None,
         sentry_environment=os.getenv("SENTRY_ENVIRONMENT", app_env),
         sentry_traces_sample_rate=_to_float(os.getenv("SENTRY_TRACES_SAMPLE_RATE"), 0.0),
