@@ -25,6 +25,8 @@ interface ImportMetaEnv {
   // Service worker (opt-in setelah SW baru terbukti aman dengan PMTiles).
   readonly VITE_ENABLE_SERVICE_WORKER?: string;
   readonly VITE_SERVICE_WORKER_PATH?: string;
+  // Google Maps JS API key (opsional). Hanya untuk online validator/preview.
+  readonly VITE_GOOGLE_MAPS_API_KEY?: string;
 }
 
 interface ImportMeta {
