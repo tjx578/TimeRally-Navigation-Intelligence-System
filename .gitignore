@@ -34,6 +34,11 @@ tools/offline-bali/tmp/
 
 # Frontend local override
 apps/web-map-console/.env.local
+# Style PMTiles di-generate dari template per deploy (mengandung bucket URL).
+# Template di-track, output di-ignore.
+apps/web-map-console/public/maps/bali-style.json
+# Production env file di-generate redeploy_web.sh.
+apps/web-map-console/.env.production
 
 # OS / editor
 .DS_Store
